@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiffinBox.Domain", "TiffinBox.Domain\TiffinBox.Domain.csproj", "{FEB26792-6C1A-4151-8265-1741825403A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiffinBox.Application", "TiffinBox.Application\TiffinBox.Application.csproj", "{9A65748D-BA9C-4B0E-B4B0-82A3821EE689}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiffinBox.Infrastructure", "TiffinBox.Infrastructure\TiffinBox.Infrastructure.csproj", "{BF1EE3E0-8DC7-401E-BBBC-BBE0C7D42D29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiffinBox.API", "TiffinBox.API\TiffinBox.API.csproj", "{ECD9BF13-A85D-4B28-8A00-F674ED59321A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEB26792-6C1A-4151-8265-1741825403A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEB26792-6C1A-4151-8265-1741825403A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEB26792-6C1A-4151-8265-1741825403A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEB26792-6C1A-4151-8265-1741825403A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A65748D-BA9C-4B0E-B4B0-82A3821EE689}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A65748D-BA9C-4B0E-B4B0-82A3821EE689}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A65748D-BA9C-4B0E-B4B0-82A3821EE689}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A65748D-BA9C-4B0E-B4B0-82A3821EE689}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF1EE3E0-8DC7-401E-BBBC-BBE0C7D42D29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF1EE3E0-8DC7-401E-BBBC-BBE0C7D42D29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF1EE3E0-8DC7-401E-BBBC-BBE0C7D42D29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF1EE3E0-8DC7-401E-BBBC-BBE0C7D42D29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECD9BF13-A85D-4B28-8A00-F674ED59321A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD9BF13-A85D-4B28-8A00-F674ED59321A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD9BF13-A85D-4B28-8A00-F674ED59321A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD9BF13-A85D-4B28-8A00-F674ED59321A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {589E2550-424A-44EC-A84B-A382E034A3A6}
+	EndGlobalSection
+EndGlobal
