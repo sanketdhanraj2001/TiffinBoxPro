@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiffinBox.Application.Common.Interfaces
+namespace TiffinBox.Application.Features.Customers.Commands.CreateSubscription
 {
-    public interface IApplicationDbContext
+    internal class CreateSubscriptionCommand
     {
-
     }
 }

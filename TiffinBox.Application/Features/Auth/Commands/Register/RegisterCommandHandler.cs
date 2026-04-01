@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiffinBox.Application.Common.Interfaces
+namespace TiffinBox.Application.Features.Auth.Commands.Register
 {
-    public interface IApplicationDbContext
+    internal class RegisterCommandHandler
     {
-
     }
 }
