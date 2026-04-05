@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Behaviors
 {
-    internal class TransactionBehavior
+    public class TransactionBehavior
     {
     }
 }

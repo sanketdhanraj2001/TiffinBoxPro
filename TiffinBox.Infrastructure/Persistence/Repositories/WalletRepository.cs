@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiffinBox.Application.Common.Models
+namespace TiffinBox.Infrastructure.Persistence.Repositories
 {
-    internal class PaginationMeta
+    public class WalletRepository
     {
     }
 }

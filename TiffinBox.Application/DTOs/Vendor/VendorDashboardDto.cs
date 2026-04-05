@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.DTOs.Vendor
 {
-    internal class VendorDashboardDto
+    public class VendorDashboardDto
     {
     }
 }

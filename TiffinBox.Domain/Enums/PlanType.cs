@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiffinBox.Application.Common.Models
+namespace TiffinBox.Domain.Enums
 {
-    internal class ApiResult
+    public class PlanType
     {
     }
 }

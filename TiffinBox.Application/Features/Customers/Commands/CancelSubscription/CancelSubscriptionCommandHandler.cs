@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Customers.Commands.CancelSubscription
 {
-    internal class CancelSubscriptionCommandHandler
+    public class CancelSubscriptionCommandHandler
     {
     }
 }

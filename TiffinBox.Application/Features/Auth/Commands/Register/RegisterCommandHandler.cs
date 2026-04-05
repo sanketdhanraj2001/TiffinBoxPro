@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Auth.Commands.Register
 {
-    internal class RegisterCommandHandler
+    public class RegisterCommandHandler
     {
     }
 }

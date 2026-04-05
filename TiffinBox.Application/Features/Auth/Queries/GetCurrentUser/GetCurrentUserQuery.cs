@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Auth.Queries.GetCurrentUser
 {
-    internal class GetCurrentUserQuery
+    public class GetCurrentUserQuery
     {
     }
 }

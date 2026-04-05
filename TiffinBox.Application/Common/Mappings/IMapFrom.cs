@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Mappings
 {
-    internal interface IMapFrom
+    public interface IMapFrom
     {
     }
 }

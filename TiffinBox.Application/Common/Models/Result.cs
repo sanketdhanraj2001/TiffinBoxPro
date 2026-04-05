@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Models
 {
-    internal class Result
+    public class Result
     {
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.DTOs.Customer
 {
-    internal class SubscriptionDto
+    public class SubscriptionDto
     {
     }
 }

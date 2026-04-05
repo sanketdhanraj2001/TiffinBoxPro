@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Auth.Commands.Login
 {
-    internal class LoginCommand
+    public class LoginCommand
     {
     }
 }

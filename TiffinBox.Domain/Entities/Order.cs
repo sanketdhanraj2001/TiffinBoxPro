@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TiffinBox.Domain.Common;
 using TiffinBox.Domain.Enums;
+using TiffinBox.Domain.Exceptions;
 using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Domain.Entities
@@ -29,7 +30,6 @@ namespace TiffinBox.Domain.Entities
 
         // Navigation properties
         public virtual ICollection<OrderItem> OrderItems { get; private set; } = new List<OrderItem>();
-        public virtual Delivery? Delivery { get; private set; }
 
         private Order() { }
 
@@ -48,7 +48,7 @@ namespace TiffinBox.Domain.Entities
         public void Confirm()
         {
             if (Status != OrderStatus.Pending)
-                throw new DomainException("Only pending orders can be confirmed");
+                throw new BusinessRuleViolationException("Only pending orders can be confirmed");
 
             Status = OrderStatus.Confirmed;
             ConfirmedAt = DateTime.UtcNow;
@@ -58,7 +58,7 @@ namespace TiffinBox.Domain.Entities
         public void StartPreparation()
         {
             if (Status != OrderStatus.Confirmed)
-                throw new DomainException("Only confirmed orders can be prepared");
+                throw new BusinessRuleViolationException("Only confirmed orders can be prepared");
 
             Status = OrderStatus.Preparing;
             PreparedAt = DateTime.UtcNow;
@@ -68,7 +68,7 @@ namespace TiffinBox.Domain.Entities
         public void AssignDeliveryAgent(Guid agentId)
         {
             if (Status != OrderStatus.Preparing)
-                throw new DomainException("Only preparing orders can be assigned for delivery");
+                throw new BusinessRuleViolationException("Only preparing orders can be assigned for delivery");
 
             DeliveryAgentId = agentId;
             Status = OrderStatus.OutForDelivery;
@@ -79,7 +79,7 @@ namespace TiffinBox.Domain.Entities
         public void MarkAsDelivered()
         {
             if (Status != OrderStatus.OutForDelivery)
-                throw new DomainException("Only orders out for delivery can be marked as delivered");
+                throw new BusinessRuleViolationException("Only orders out for delivery can be marked as delivered");
 
             Status = OrderStatus.Delivered;
             DeliveredAt = DateTime.UtcNow;
@@ -89,7 +89,7 @@ namespace TiffinBox.Domain.Entities
         public void Cancel(string reason, UserRole cancelledBy)
         {
             if (Status == OrderStatus.Delivered)
-                throw new DomainException("Delivered orders cannot be cancelled");
+                throw new BusinessRuleViolationException("Delivered orders cannot be cancelled");
 
             Status = OrderStatus.Cancelled;
             CancelledAt = DateTime.UtcNow;
@@ -100,6 +100,12 @@ namespace TiffinBox.Domain.Entities
         public void UpdateTrackingUrl(string url)
         {
             TrackingUrl = url;
+            UpdateTimestamp();
+        }
+
+        public void AddOrderItem(OrderItem item)
+        {
+            OrderItems.Add(item);
             UpdateTimestamp();
         }
     }

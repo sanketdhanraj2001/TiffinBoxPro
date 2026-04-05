@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Auth.Commands.Login
 {
-    internal class LoginCommandValidator
+    public class LoginCommandValidator
     {
     }
 }

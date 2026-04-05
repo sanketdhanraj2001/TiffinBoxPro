@@ -6,4 +6,27 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Authentication\" />
+    <Folder Include="Services\Email\" />
+    <Folder Include="Services\Caching\" />
+    <Folder Include="Services\Notification\" />
+    <Folder Include="Services\Storage\" />
+    <Folder Include="Services\Payment\" />
+    <Folder Include="Services\SMS\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.25" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.25" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.25">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TiffinBox.Domain\TiffinBox.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

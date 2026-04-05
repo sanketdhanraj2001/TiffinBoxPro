@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiffinBox.Application.DTOs.Auth
+namespace TiffinBox.Infrastructure.Persistence.Configurations
 {
-    internal class RegisterRequest
+    internal class VendorConfiguration
     {
     }
 }

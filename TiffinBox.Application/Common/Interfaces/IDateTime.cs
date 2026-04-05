@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Interfaces
 {
-    internal interface IDateTime
+    public interface IDateTime
     {
     }
 }

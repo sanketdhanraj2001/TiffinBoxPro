@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Behaviors
 {
-    internal class PerformanceBehavior
+    public class PerformanceBehavior
     {
     }
 }

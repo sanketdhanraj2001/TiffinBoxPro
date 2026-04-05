@@ -1,0 +1,386 @@
+﻿using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using TiffinBox.Application.Common.Interfaces;
+using TiffinBox.Application.Common.Models;
+using TiffinBox.Application.DTOs.Auth;
+using TiffinBox.Application.DTOs.Common;
+using TiffinBox.Domain.Entities;
+using TiffinBox.Domain.Enums;
+using TiffinBox.Domain.Interfaces;
+
+namespace TiffinBox.Application.Services
+{
+    public class AuthService: IAuthenticationService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailService _emailService;
+        private readonly ISmsService _smsService;
+        private readonly ICacheService _cacheService;
+        private readonly JwtSettings _jwtSettings;
+        private readonly ILogger<AuthService> _logger;
+
+        public AuthService(
+            IUnitOfWork unitOfWork,
+            IEmailService emailService,
+            ISmsService smsService,
+            ICacheService cacheService,
+            IOptions<JwtSettings> jwtSettings,
+            ILogger<AuthService> logger)
+        {
+            _unitOfWork = unitOfWork;
+            _emailService = emailService;
+            _smsService = smsService;
+            _cacheService = cacheService;
+            _jwtSettings = jwtSettings.Value;
+            _logger = logger;
+        }
+
+        public async Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginRequestDto request)
+        {
+            try
+            {
+                // Find user by email
+                var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("Login attempt failed: User not found - {Email}", request.Email);
+                    return ApiResponse<LoginResponseDto>.Fail("Invalid email or password");
+                }
+
+                // Check if user is locked out
+                if (user.IsLockedOut())
+                {
+                    return ApiResponse<LoginResponseDto>.Fail("Account is locked out. Please try again later.");
+                }
+
+                // Verify password
+                if (!VerifyPassword(request.Password, user.PasswordHash))
+                {
+                    user.RecordLoginFailure();
+                    await _unitOfWork.CompleteAsync();
+
+                    _logger.LogWarning("Login attempt failed: Invalid password - {Email}", request.Email);
+                    return ApiResponse<LoginResponseDto>.Fail("Invalid email or password");
+                }
+
+                // Check if email is verified
+                if (!user.IsEmailVerified)
+                {
+                    return ApiResponse<LoginResponseDto>.Fail("Please verify your email before logging in");
+                }
+
+                // Check if account is active
+                if (!user.IsActive)
+                {
+                    return ApiResponse<LoginResponseDto>.Fail("Your account has been deactivated");
+                }
+
+                // Record successful login
+                user.RecordLoginSuccess();
+
+                // Generate tokens
+                var (accessToken, expiresAt) = GenerateAccessToken(user);
+                var refreshToken = GenerateRefreshToken();
+
+                user.SetRefreshToken(refreshToken, DateTime.UtcNow.AddDays(7));
+                await _unitOfWork.CompleteAsync();
+
+                var userProfile = new UserProfileDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    PhoneNumber = user.PhoneNumber,
+                    Role = user.Role.ToString(),
+                    IsEmailVerified = user.IsEmailVerified,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+                    VendorId = user.Vendor?.Id,
+                    DeliveryAgentId = user.DeliveryAgent?.Id
+                };
+
+                var response = new LoginResponseDto
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = expiresAt,
+                    User = userProfile
+                };
+
+                _logger.LogInformation("User logged in successfully: {UserId} - {Email}", user.Id, user.Email);
+
+                return ApiResponse<LoginResponseDto>.Ok(response, "Login successful");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for {Email}", request.Email);
+                return ApiResponse<LoginResponseDto>.Fail("An error occurred during login");
+            }
+        }
+
+        public async Task<ApiResponse<RegisterResponseDto>> RegisterAsync(RegisterRequestDto request)
+        {
+            try
+            {
+                // Check if email already exists
+                var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+                if (existingUser != null)
+                    return ApiResponse<RegisterResponseDto>.Fail("Email already registered");
+
+                // Check if phone already exists
+                existingUser = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
+                if (existingUser != null)
+                    return ApiResponse<RegisterResponseDto>.Fail("Phone number already registered");
+
+                // Begin transaction
+                await _unitOfWork.BeginTransactionAsync();
+
+                // Create user
+                var user = User.Create(
+                    request.Email,
+                    request.PhoneNumber,
+                    request.FirstName,
+                    request.LastName,
+                    request.Role);
+
+                user.SetPasswordHash(HashPassword(request.Password));
+
+                if (request.Address != null)
+                {
+                    user.UpdateProfile(
+                        request.FirstName,
+                        request.LastName,
+                        request.Address.ToDomain(),
+                        null);
+                }
+
+                await _unitOfWork.Users.AddAsync(user);
+
+                // If vendor, create vendor record
+                if (request.Role == UserRole.VendorAdmin)
+                {
+                    var vendor = Vendor.Create(user, $"{request.FirstName}'s Kitchen", user.Address!);
+                    await _unitOfWork.Vendors.AddAsync(vendor);
+                }
+
+                await _unitOfWork.CompleteAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                // Generate OTP
+                var otp = GenerateOtp();
+                await _cacheService.SetAsync($"otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
+
+                // Send verification email
+                await _emailService.SendVerificationEmailAsync(user.Email, otp);
+
+                _logger.LogInformation("User registered successfully: {UserId} - {Email}", user.Id, user.Email);
+
+                return ApiResponse<RegisterResponseDto>.Ok(
+                    new RegisterResponseDto(user.Id, user.Email, "Registration successful. Please verify your email with OTP."));
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error during registration for {Email}", request.Email);
+                return ApiResponse<RegisterResponseDto>.Fail("An error occurred during registration");
+            }
+        }
+
+        public async Task<ApiResponse<TokenResponseDto>> RefreshTokenAsync(string refreshToken)
+        {
+            var user = await _unitOfWork.Users.GetByRefreshTokenAsync(refreshToken);
+
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return ApiResponse<TokenResponseDto>.Fail("Invalid or expired refresh token");
+            }
+
+            var (newAccessToken, expiresAt) = GenerateAccessToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+
+            user.SetRefreshToken(newRefreshToken, DateTime.UtcNow.AddDays(7));
+            await _unitOfWork.CompleteAsync();
+
+            return ApiResponse<TokenResponseDto>.Ok(new TokenResponseDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                ExpiresAt = expiresAt
+            });
+        }
+
+        public async Task<ApiResponse<bool>> VerifyOtpAsync(string email, string otp)
+        {
+            var cachedOtp = await _cacheService.GetAsync<string>($"otp:{email}");
+
+            if (cachedOtp == null || cachedOtp != otp)
+            {
+                return ApiResponse<bool>.Fail("Invalid or expired OTP");
+            }
+
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            if (user == null)
+            {
+                return ApiResponse<bool>.Fail("User not found");
+            }
+
+            user.VerifyEmail();
+            await _unitOfWork.CompleteAsync();
+
+            await _cacheService.RemoveAsync($"otp:{email}");
+
+            return ApiResponse<bool>.Ok(true, "Email verified successfully");
+        }
+
+        public async Task<ApiResponse<bool>> ForgotPasswordAsync(string email)
+        {
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            if (user == null)
+            {
+                // Don't reveal that user doesn't exist
+                return ApiResponse<bool>.Ok(true, "If the email exists, a reset link will be sent");
+            }
+
+            var resetToken = GenerateResetToken();
+            await _cacheService.SetAsync($"reset:{email}", resetToken, TimeSpan.FromHours(1));
+
+            await _emailService.SendPasswordResetEmailAsync(email, resetToken);
+
+            return ApiResponse<bool>.Ok(true, "Password reset link sent to your email");
+        }
+
+        public async Task<ApiResponse<bool>> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var cachedToken = await _cacheService.GetAsync<string>($"reset:{email}");
+
+            if (cachedToken == null || cachedToken != token)
+            {
+                return ApiResponse<bool>.Fail("Invalid or expired reset token");
+            }
+
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            if (user == null)
+            {
+                return ApiResponse<bool>.Fail("User not found");
+            }
+
+            user.SetPasswordHash(HashPassword(newPassword));
+            await _unitOfWork.CompleteAsync();
+
+            await _cacheService.RemoveAsync($"reset:{email}");
+
+            return ApiResponse<bool>.Ok(true, "Password reset successfully");
+        }
+
+        public async Task<ApiResponse<bool>> LogoutAsync(Guid userId)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user != null)
+            {
+                user.RevokeRefreshToken();
+                await _unitOfWork.CompleteAsync();
+            }
+
+            return ApiResponse<bool>.Ok(true, "Logged out successfully");
+        }
+
+        public async Task<ApiResponse<UserProfileDto>> GetCurrentUserAsync(Guid userId)
+        {
+            var user = await _unitOfWork.Users.GetByIdWithDetailsAsync(userId);
+
+            if (user == null)
+                return ApiResponse<UserProfileDto>.Fail("User not found");
+
+            var profile = new UserProfileDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role.ToString(),
+                IsEmailVerified = user.IsEmailVerified,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                VendorId = user.Vendor?.Id,
+                DeliveryAgentId = user.DeliveryAgent?.Id,
+                WalletBalance = user.Wallet?.Balance.Amount ?? 0
+            };
+
+            return ApiResponse<UserProfileDto>.Ok(profile);
+        }
+
+        private string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+        }
+
+        private bool VerifyPassword(string password, string hash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hash);
+        }
+
+        private (string Token, DateTime ExpiresAt) GenerateAccessToken(User user)
+        {
+            var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
+            new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
+            new Claim("role", user.Role.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+            if (user.Vendor != null)
+            {
+                claims.Add(new Claim("vendor_id", user.Vendor.Id.ToString()));
+            }
+
+            if (user.DeliveryAgent != null)
+            {
+                claims.Add(new Claim("agent_id", user.DeliveryAgent.Id.ToString()));
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var expiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes);
+
+            var token = new JwtSecurityToken(
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
+                claims: claims,
+                expires: expiresAt,
+                signingCredentials: credentials);
+
+            return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private string GenerateOtp()
+        {
+            var random = new Random();
+            return random.Next(100000, 999999).ToString();
+        }
+
+        private string GenerateResetToken()
+        {
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        }
+    }
+}

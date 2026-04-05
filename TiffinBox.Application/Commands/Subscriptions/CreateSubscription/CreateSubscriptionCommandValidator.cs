@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Commands.Subscriptions.CreateSubscription
 {
-    internal class CreateSubscriptionCommandValidator
+    public class CreateSubscriptionCommandValidator
     {
     }
 }

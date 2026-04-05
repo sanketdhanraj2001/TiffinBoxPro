@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TiffinBox.Application.DTOs.Auth
+namespace TiffinBox.Application.Services
 {
-    internal class LoginRequest
+    public class PaymentService
     {
     }
 }

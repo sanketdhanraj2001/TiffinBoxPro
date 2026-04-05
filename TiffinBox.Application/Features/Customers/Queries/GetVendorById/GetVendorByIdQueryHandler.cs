@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Customers.Queries.GetVendorById
 {
-    internal class GetVendorByIdQueryHandler
+    public class GetVendorByIdQueryHandler
     {
     }
 }

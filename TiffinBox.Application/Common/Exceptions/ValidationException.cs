@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Exceptions
 {
-    internal class ValidationException
+    public class ValidationException
     {
     }
 }

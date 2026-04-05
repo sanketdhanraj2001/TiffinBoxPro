@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Common.Behaviors
 {
-    internal class AuthorizationBehavior
+    public class AuthorizationBehavior
     {
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Customers.Commands.AddReview
 {
-    internal class AddReviewCommandHandler
+    public class AddReviewCommandHandler
     {
     }
 }

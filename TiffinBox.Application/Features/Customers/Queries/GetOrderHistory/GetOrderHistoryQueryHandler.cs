@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Customers.Queries.GetOrderHistory
 {
-    internal class GetOrderHistoryQueryHandler
+    public class GetOrderHistoryQueryHandler
     {
     }
 }

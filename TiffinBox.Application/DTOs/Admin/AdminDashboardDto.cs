@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.DTOs.Admin
 {
-    internal class AdminDashboardDto
+    public class AdminDashboardDto
     {
     }
 }

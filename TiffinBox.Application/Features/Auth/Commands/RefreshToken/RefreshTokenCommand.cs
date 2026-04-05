@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Auth.Commands.RefreshToken
 {
-    internal class RefreshTokenCommand
+    public class RefreshTokenCommand
     {
     }
 }

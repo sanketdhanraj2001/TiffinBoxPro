@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Application.Features.Customers.Queries.GetMySubscriptions
 {
-    internal class GetMySubscriptionsQuery
+    public class GetMySubscriptionsQuery
     {
     }
 }
