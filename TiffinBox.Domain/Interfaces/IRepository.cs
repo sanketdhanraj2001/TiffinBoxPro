@@ -7,7 +7,7 @@ using TiffinBox.Domain.Common;
 
 namespace TiffinBox.Domain.Interfaces
 {
-    public interface IRepository<T> where T : BaseEntity
+    public interface IRepository<T> where T : class
     {
         Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 

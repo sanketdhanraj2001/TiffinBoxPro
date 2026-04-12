@@ -10,7 +10,7 @@ using TiffinBox.Domain.Interfaces;
 
 namespace TiffinBox.Infrastructure.Persistence.Repositories
 {
-    public class GenericRepository<T> : IRepository<T> where T : BaseEntity
+    public class GenericRepository<T> : IRepository<T> where T : class
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
