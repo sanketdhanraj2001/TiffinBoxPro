@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TiffinBox.Domain.Common;
+using TiffinBox.Domain.Enums;
+using TiffinBox.Domain.Exceptions;
+using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Domain.Entities
 {
@@ -16,6 +19,8 @@ namespace TiffinBox.Domain.Entities
         public DateTime StartDate { get; private set; }
         public DateTime EndDate { get; private set; }
         public SubscriptionStatus Status { get; private set; }
+        public DateTime CancelledAt { get; private set; }
+        public string CancellationReason { get; private set; }
         public Money TotalAmount { get; private set; }
         public int TotalDays { get; private set; }
         public int DeliveredDays { get; private set; }
@@ -78,6 +83,22 @@ namespace TiffinBox.Domain.Entities
                 throw new InvalidOperationException("Subscription already cancelled");
 
             Status = SubscriptionStatus.Cancelled;
+        }
+        public void Cancel(string reason)
+        {
+            if (Status == SubscriptionStatus.Cancelled)
+                throw new BusinessRuleViolationException("Subscription is already cancelled");
+
+            if (Status == SubscriptionStatus.Expired)
+                throw new BusinessRuleViolationException("Cannot cancel an expired subscription");
+
+            if (Status != SubscriptionStatus.Active && Status != SubscriptionStatus.Paused)
+                throw new BusinessRuleViolationException($"Cannot cancel subscription with status: {Status}");
+
+            Status = SubscriptionStatus.Cancelled;
+            CancelledAt = DateTime.UtcNow;
+            CancellationReason = reason;
+            UpdateTimestamp();
         }
 
         public void RecordDelivery(DateTime date)

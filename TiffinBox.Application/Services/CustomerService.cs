@@ -9,7 +9,10 @@ using TiffinBox.Application.Common.Interfaces;
 using TiffinBox.Application.Common.Models;
 using TiffinBox.Application.DTOs.Customer;
 using TiffinBox.Domain.Entities;
+using TiffinBox.Domain.Enums;
 using TiffinBox.Domain.Interfaces;
+using TiffinBox.Domain.Specifications;
+using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Application.Services
 {
@@ -126,7 +129,7 @@ namespace TiffinBox.Application.Services
                 Reviews = vendor.Reviews.Take(10).Select(r => new ReviewDto
                 {
                     Id = r.Id,
-                    UserName = r.User.FullName,
+                    UserName = r.Customer.FullName,
                     Rating = r.Rating,
                     Comment = r.Comment,
                     CreatedAt = r.CreatedAt

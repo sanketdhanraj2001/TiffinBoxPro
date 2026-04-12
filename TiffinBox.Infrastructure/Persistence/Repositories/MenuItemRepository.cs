@@ -1,0 +1,79 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TiffinBox.Domain.Entities;
+using TiffinBox.Domain.Interfaces;
+
+namespace TiffinBox.Infrastructure.Persistence.Repositories
+{
+    public class MenuItemRepository : GenericRepository<MenuItem>, IMenuItemRepository
+    {
+        public MenuItemRepository(ApplicationDbContext context) : base(context) { }
+
+        public async Task<IReadOnlyList<MenuItem>> GetByVendorAsync(Guid vendorId)
+        {
+            return await _dbSet
+                .Where(m => m.VendorId == vendorId)
+                .OrderBy(m => m.Category)
+                .ThenBy(m => m.Name)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<MenuItem>> GetByVendorAsync(Guid vendorId, bool onlyAvailable)
+        {
+            var query = _dbSet.Where(m => m.VendorId == vendorId);
+
+            if (onlyAvailable)
+                query = query.Where(m => m.IsAvailable);
+
+            return await query
+                .OrderBy(m => m.Category)
+                .ThenBy(m => m.Name)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<MenuItem>> GetByIdsAsync(List<Guid> ids)
+        {
+            if (ids == null || !ids.Any())
+                return new List<MenuItem>();
+
+            return await _dbSet
+                .Where(m => ids.Contains(m.Id))
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<MenuItem>> GetByCategoryAsync(Guid vendorId, string category)
+        {
+            return await _dbSet
+                .Where(m => m.VendorId == vendorId && m.Category == category && m.IsAvailable)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<MenuItem>> GetVegetarianItemsAsync(Guid vendorId)
+        {
+            return await _dbSet
+                .Where(m => m.VendorId == vendorId && m.IsVegetarian && m.IsAvailable)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<MenuItem>> GetPopularItemsAsync(Guid vendorId, int take)
+        {
+            return await _dbSet
+                .Where(m => m.VendorId == vendorId && m.IsAvailable)
+                .OrderByDescending(m => m.OrderCount)
+                .Take(take)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsNameUniqueAsync(Guid vendorId, string name, Guid? excludeId = null)
+        {
+            var query = _dbSet.Where(m => m.VendorId == vendorId && m.Name == name);
+            if (excludeId.HasValue)
+                query = query.Where(m => m.Id != excludeId.Value);
+            return !await query.AnyAsync();
+        }
+    }
+}

@@ -11,6 +11,10 @@ namespace TiffinBox.Domain.Interfaces
         IUserRepository Users { get; }
         IVendorRepository Vendors { get; }
         ISubscriptionRepository Subscriptions { get; }
+        ISubscriptionPlanRepository SubscriptionPlans { get; }
+        IMenuItemRepository MenuItems { get; }  
+
+        IReviewRepository Reviews { get; }
         IOrderRepository Orders { get; }
         IPaymentRepository Payments { get; }
         IWalletRepository Wallets { get; }

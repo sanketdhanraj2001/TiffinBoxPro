@@ -13,7 +13,7 @@ using TiffinBox.Domain.Entities;
 
 namespace TiffinBox.Infrastructure.Persistence
 {
-    public class ApplicationDbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -33,6 +33,7 @@ namespace TiffinBox.Infrastructure.Persistence
         public DbSet<Wallet> Wallets => Set<Wallet>();
         public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
         public DbSet<Notification> Notifications => Set<Notification>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TiffinBox.Domain.Entities;
+
+namespace TiffinBox.Domain.Interfaces
+{
+    public interface IWalletRepository : IRepository<Wallet>
+    {
+        Task<Wallet?> GetByUserIdAsync(Guid userId);
+        Task<Wallet?> GetByUserIdWithTransactionsAsync(Guid userId, int? limit = null);
+        Task<IReadOnlyList<WalletTransaction>> GetTransactionsAsync(Guid walletId, DateTime? from, DateTime? to, int page, int pageSize);
+    }
+}

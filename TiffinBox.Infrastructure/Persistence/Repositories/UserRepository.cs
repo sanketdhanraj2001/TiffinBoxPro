@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TiffinBox.Domain.Entities;
+using TiffinBox.Domain.Interfaces;
 
 namespace TiffinBox.Infrastructure.Persistence.Repositories
 {

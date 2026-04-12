@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\Authentication\" />
     <Folder Include="Services\Email\" />
     <Folder Include="Services\Caching\" />
     <Folder Include="Services\Notification\" />
@@ -26,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TiffinBox.Application\TiffinBox.Application.csproj" />
     <ProjectReference Include="..\TiffinBox.Domain\TiffinBox.Domain.csproj" />
   </ItemGroup>
 

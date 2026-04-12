@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TiffinBox.Domain.Common;
+using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Domain.Entities
 {
@@ -18,6 +19,8 @@ namespace TiffinBox.Domain.Entities
         public string? Description { get; private set; }
         public string? LogoUrl { get; private set; }
         public string? CoverImageUrl { get; private set; }
+        //public string? Reviews { get; private set; }
+
         public Address BusinessAddress { get; private set; }
         public GeoLocation? Location { get; private set; }
         public double Rating { get; private set; }
@@ -31,6 +34,20 @@ namespace TiffinBox.Domain.Entities
         public TimeOnly OpeningTime { get; private set; }
         public TimeOnly ClosingTime { get; private set; }
         public List<string> ServiceAreas { get; private set; } = new();
+
+
+        // ✅ FIXED: Changed from string? to ICollection<Review>
+        public virtual ICollection<Review> Reviews { get; private set; } = new List<Review>();
+        // ✅ ADDED: Cuisine type (e.g., North Indian, Chinese, Italian)
+        public string? Cuisine { get; private set; }
+
+        // ✅ ADDED: Delivery fee and minimum order amount
+        public Money? DeliveryFee { get; private set; }
+        public Money? MinOrderAmount { get; private set; }
+
+        // ✅ ADDED: Estimated delivery time in minutes
+        public int EstimatedDeliveryTime { get; private set; } = 30;
+
 
         // Navigation properties
         public virtual ICollection<MenuItem> MenuItems { get; private set; } = new List<MenuItem>();

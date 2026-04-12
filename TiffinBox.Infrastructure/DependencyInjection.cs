@@ -1,33 +1,23 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using FluentValidation;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using TiffinBox.Application.Common.Behaviors;
 using System.Text;
 using System.Threading.Tasks;
+using TiffinBox.Application.Common.Interfaces;
+using TiffinBox.Infrastructure.Services.Authentication;
 
-namespace TiffinBox.Application
+namespace TiffinBox.Infrastructure
 {
-    public static class DependencyInjection
+    public class DependencyInjection
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
+        public static void RegisterServices(WebApplicationBuilder builder)
         {
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
-            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            services.AddMediatR(cfg =>
-            {
-                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
-                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
-                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
-            });
+            builder.Services.AddHttpContextAccessor();
 
-            return services;
+            // Register CurrentUserService
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
         }
     }
 }

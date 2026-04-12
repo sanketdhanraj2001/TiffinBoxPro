@@ -21,6 +21,10 @@ namespace TiffinBox.Infrastructure.Persistence
         private IWalletRepository? _wallets;
         private INotificationRepository? _notifications;
         private ISubscriptionRepository? _subscriptions;
+        private ISubscriptionPlanRepository? _subscriptionPlans; 
+        private IMenuItemRepository? _menuItems;  
+        private IReviewRepository? _reviews;
+
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -34,6 +38,11 @@ namespace TiffinBox.Infrastructure.Persistence
         public IWalletRepository Wallets => _wallets ??= new WalletRepository(_context);
         public INotificationRepository Notifications => _notifications ??= new NotificationRepository(_context);
         public ISubscriptionRepository Subscriptions => _subscriptions ??= new SubscriptionRepository(_context);
+        // ✅ Add these new repository properties
+        public ISubscriptionPlanRepository SubscriptionPlans => _subscriptionPlans ??= new SubscriptionPlanRepository(_context);
+
+        public IMenuItemRepository MenuItems => _menuItems ??= new MenuItemRepository(_context);
+        public IReviewRepository Reviews => _reviews ??= new ReviewRepository(_context);
 
         public async Task<int> CompleteAsync(CancellationToken cancellationToken = default)
         {

@@ -8,5 +8,15 @@ namespace TiffinBox.Application.Common.Interfaces
 {
     public interface ISmsService
     {
+        Task SendSmsAsync(string phoneNumber, string message);
+        Task SendOtpAsync(string phoneNumber, string otp);
+        Task SendDeliveryStatusAsync(string phoneNumber, string orderId, string status);
+        Task SendOrderConfirmationAsync(string phoneNumber, string orderId, string vendorName, string deliveryDate);
+        Task SendSubscriptionReminderAsync(string phoneNumber, string subscriptionId, int daysRemaining);
+        Task SendPaymentConfirmationAsync(string phoneNumber, decimal amount, string transactionId);
+        Task SendWalletUpdateAsync(string phoneNumber, decimal amount, string transactionType, decimal balance);
+        Task SendPromotionalSmsAsync(string phoneNumber, string message);
+        bool IsValidPhoneNumber(string phoneNumber);
+        string FormatPhoneNumber(string phoneNumber, string countryCode = "+91");
     }
 }

@@ -1,8 +1,18 @@
+using TiffinBox.Application.Common.Interfaces;
+using TiffinBox.Application.Common.Settings;
+using TiffinBox.Application.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<SmsSettings>(builder.Configuration.GetSection("SmsSettings"));
+builder.Services.AddScoped<ISmsService, SmsService>();
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

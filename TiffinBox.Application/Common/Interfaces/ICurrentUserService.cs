@@ -8,5 +8,12 @@ namespace TiffinBox.Application.Common.Interfaces
 {
     public interface ICurrentUserService
     {
+        Guid GetCurrentUserId();
+        string? GetUserRole();
+        string? GetUserEmail();
+        string? GetUserPhone();
+        string? GetUserFullName();
+        bool IsAuthenticated();
+        bool IsInRole(string role);
     }
 }

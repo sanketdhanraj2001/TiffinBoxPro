@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TiffinBox.Infrastructure.Persistence.Configurations
 {
-    internal class VendorConfiguration
+    public class VendorConfiguration
     {
     }
 }

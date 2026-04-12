@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TiffinBox.Domain.Common;
+using TiffinBox.Domain.Enums;
 using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Domain.Entities
