@@ -52,13 +52,10 @@ namespace TiffinBox.Domain.Entities
                 FailedLoginAttempts = 0
             };
 
-            // ✅ Fix: Create wallet after user is created, passing user.Id
-            // But since Id is generated, we need to set it differently
 
             return user;
         }
 
-        // ✅ Alternative: Call this after user is added to database
         public void InitializeWallet()
         {
             Wallet = Wallet.Create(Id);
