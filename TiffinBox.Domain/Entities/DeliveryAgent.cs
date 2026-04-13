@@ -15,7 +15,7 @@ namespace TiffinBox.Domain.Entities
         public Guid VendorId { get; private set; }
         public virtual Vendor Vendor { get; private set; }
         public string? VehicleNumber { get; private set; }
-        public string? VehicleType { get; private set; }  // Bike, Scooter, Car
+        public string? VehicleType { get; private set; }
         public bool IsActive { get; private set; }
         public bool IsAvailable { get; private set; }
         public GeoLocation? CurrentLocation { get; private set; }
@@ -24,7 +24,6 @@ namespace TiffinBox.Domain.Entities
         public int TotalDeliveries { get; private set; }
         public DateTime? LastDeliveryAt { get; private set; }
 
-        // Navigation properties
         public virtual ICollection<Order> Orders { get; private set; } = new List<Order>();
 
         private DeliveryAgent() { }

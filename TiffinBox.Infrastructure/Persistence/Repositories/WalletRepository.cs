@@ -43,7 +43,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
         {
             var wallet = await GetByIdAsync(walletId);
             if (wallet == null) return false;
-            wallet.Credit(amount, "INR", description, referenceId);
+            wallet.Credit(amount, description, referenceId);
             await UpdateAsync(wallet);
             return true;
         }
@@ -53,7 +53,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
             var wallet = await GetByIdAsync(walletId);
             if (wallet == null) return false;
             if (wallet.Balance.Amount < amount) return false;
-            wallet.Debit(amount, "INR", description, referenceId);
+            wallet.Debit(amount, description, referenceId);
             await UpdateAsync(wallet);
             return true;
         }

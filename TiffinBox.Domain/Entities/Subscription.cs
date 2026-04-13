@@ -13,14 +13,17 @@ namespace TiffinBox.Domain.Entities
     public class Subscription : BaseEntity
     {
         public Guid CustomerId { get; private set; }
+        public virtual User Customer { get; private set; }
         public Guid VendorId { get; private set; }
+        public virtual Vendor Vendor { get; private set; }  
         public Guid PlanId { get; private set; }
         public SubscriptionPlan Plan { get; private set; }
         public DateTime StartDate { get; private set; }
         public DateTime EndDate { get; private set; }
         public SubscriptionStatus Status { get; private set; }
-        public DateTime CancelledAt { get; private set; }
-        public string CancellationReason { get; private set; }
+        public DateTime? CancelledAt { get; private set; }
+
+        public string? CancellationReason { get; private set; }
         public Money TotalAmount { get; private set; }
         public int TotalDays { get; private set; }
         public int DeliveredDays { get; private set; }

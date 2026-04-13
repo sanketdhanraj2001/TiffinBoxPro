@@ -41,7 +41,7 @@ namespace TiffinBox.Domain.Entities
 
         public static User Create(string email, string phoneNumber, string firstName, string lastName, UserRole role)
         {
-            return new User
+            var user = new User
             {
                 Email = email.ToLowerInvariant(),
                 PhoneNumber = phoneNumber,
@@ -49,9 +49,19 @@ namespace TiffinBox.Domain.Entities
                 LastName = lastName,
                 Role = role,
                 IsActive = true,
-                FailedLoginAttempts = 0,
-                Wallet = Wallet.Create(email)
+                FailedLoginAttempts = 0
             };
+
+            // ✅ Fix: Create wallet after user is created, passing user.Id
+            // But since Id is generated, we need to set it differently
+
+            return user;
+        }
+
+        // ✅ Alternative: Call this after user is added to database
+        public void InitializeWallet()
+        {
+            Wallet = Wallet.Create(Id);
         }
 
         public void SetPasswordHash(string hash) => PasswordHash = hash;

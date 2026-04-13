@@ -13,7 +13,6 @@ namespace TiffinBox.Domain.Interfaces
         ISubscriptionRepository Subscriptions { get; }
         ISubscriptionPlanRepository SubscriptionPlans { get; }
         IMenuItemRepository MenuItems { get; }  
-
         IReviewRepository Reviews { get; }
         IOrderRepository Orders { get; }
         IPaymentRepository Payments { get; }

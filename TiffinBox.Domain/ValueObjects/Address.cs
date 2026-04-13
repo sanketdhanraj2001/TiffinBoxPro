@@ -8,12 +8,23 @@ namespace TiffinBox.Domain.ValueObjects
 {
     public record Address
     {
-        public string Street { get; }
-        public string City { get; }
-        public string State { get; }
-        public string PostalCode { get; }
-        public string Country { get; }
-        public string? Landmark { get; }
+        public int Id { get; set; }
+        public string Street { get; init; }
+        public string City { get; init; }
+        public string State { get; init; }
+        public string PostalCode { get; init; }
+        public string Country { get; init; }
+        public string? Landmark { get; init; }
+
+        // ✅ Parameterless constructor for EF Core
+        private Address()
+        {
+            Street = string.Empty;
+            City = string.Empty;
+            State = string.Empty;
+            PostalCode = string.Empty;
+            Country = string.Empty;
+        }
 
         public Address(
             string street,

@@ -14,20 +14,44 @@ namespace TiffinBox.Domain.Entities
         public virtual User User { get; private set; }
         public Money Balance { get; private set; }
         public bool IsActive { get; private set; }
-
-        // Navigation property
         public virtual ICollection<WalletTransaction> Transactions { get; private set; } = new List<WalletTransaction>();
 
         private Wallet() { }
 
-        public static Wallet Create(string userEmail)
+        public static Wallet Create(Guid userId)
         {
             return new Wallet
             {
-                UserId = Guid.Empty, // Will be set when attached to user
+                UserId = userId,
                 Balance = new Money(0, "INR"),
                 IsActive = true
             };
+        }
+
+       
+        public void Credit(decimal amount, string description, string? referenceId = null)
+        {
+            if (amount <= 0) throw new ArgumentException("Amount must be positive");
+
+            var creditAmount = new Money(amount, Balance.Currency);
+            Balance = new Money(Balance.Amount + creditAmount.Amount, Balance.Currency);
+
+            var transaction = WalletTransaction.CreateCredit(Id, creditAmount, description, referenceId, Balance.Amount);
+            Transactions.Add(transaction);
+            UpdateTimestamp();
+        }
+
+        public void Debit(decimal amount, string description, string? referenceId = null)
+        {
+            if (amount <= 0) throw new ArgumentException("Amount must be positive");
+            if (Balance.Amount < amount) throw new InvalidOperationException("Insufficient balance");
+
+            var debitAmount = new Money(amount, Balance.Currency);
+            Balance = new Money(Balance.Amount - debitAmount.Amount, Balance.Currency);
+
+            var transaction = WalletTransaction.CreateDebit(Id, debitAmount, description, referenceId, Balance.Amount);
+            Transactions.Add(transaction);
+            UpdateTimestamp();
         }
 
         public void Activate()
@@ -41,38 +65,5 @@ namespace TiffinBox.Domain.Entities
             IsActive = false;
             UpdateTimestamp();
         }
-
-        public void Credit(decimal amount, string currency, string description, string? referenceId = null)
-        {
-            if (!IsActive) throw new InvalidOperationException("Wallet is deactivated");
-            if (amount <= 0) throw new ArgumentException("Amount must be positive");
-
-            var creditAmount = new Money(amount, currency);
-            Balance += creditAmount;
-
-            var transaction = WalletTransaction.CreateCredit(this.Id, creditAmount, description, referenceId);
-            Transactions.Add(transaction);
-
-            UpdateTimestamp();
-        }
-
-        public void Debit(decimal amount, string currency, string description, string? referenceId = null)
-        {
-            if (!IsActive) throw new InvalidOperationException("Wallet is deactivated");
-            if (amount <= 0) throw new ArgumentException("Amount must be positive");
-
-            var debitAmount = new Money(amount, currency);
-            if (Balance.Amount < debitAmount.Amount)
-                throw new InvalidOperationException("Insufficient balance");
-
-            Balance -= debitAmount;
-
-            var transaction = WalletTransaction.CreateDebit(this.Id, debitAmount, description, referenceId);
-            Transactions.Add(transaction);
-
-            UpdateTimestamp();
-        }
-
-        public decimal GetAvailableBalance() => Balance.Amount;
     }
 }

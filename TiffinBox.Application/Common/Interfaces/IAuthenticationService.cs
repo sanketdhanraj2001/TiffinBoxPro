@@ -1,12 +1,28 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TiffinBox.Application.Common.Models;
+using TiffinBox.Application.DTOs.Auth;
+using TiffinBox.Application.DTOs.Common;
 
 namespace TiffinBox.Application.Common.Interfaces
 {
     public interface IAuthenticationService
     {
+
+        Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginRequestDto request);
+        Task<ApiResponse<RegisterResponseDto>> RegisterAsync(RegisterRequestDto request);
+        Task<ApiResponse<TokenResponseDto>> RefreshTokenAsync(RefreshTokenRequest request);
+        Task<ApiResponse<bool>> LogoutAsync(Guid userId);
+        Task<ApiResponse<UserProfileDto>> GetCurrentUserAsync(Guid userId);
+        Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequest request);
+        Task<ApiResponse<bool>> ForgotPasswordAsync(DTOs.Auth.ForgotPasswordRequest request);
+        Task<ApiResponse<bool>> ResetPasswordAsync(DTOs.Auth.ResetPasswordRequest request);
+        Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, string oldPassword, string newPassword);
+        Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request);
+        Task<ApiResponse<bool>> ResendVerificationOtpAsync(string email);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,11 @@ namespace TiffinBox.Domain.Entities
         public DateTime? ReadAt { get; private set; }
         public string? ActionUrl { get; private set; }
         public string? ImageUrl { get; private set; }
+
+        // ✅ Add [NotMapped] attribute
+        [NotMapped]
         public Dictionary<string, string>? Data { get; private set; }
+
         public DateTime? SentAt { get; private set; }
         public DateTime? DeliveredAt { get; private set; }
         public string? ErrorMessage { get; private set; }

@@ -3,13 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TiffinBox.Domain.Common;
 
 namespace TiffinBox.Domain.ValueObjects
 {
-    public record Money
+    public class Money : ValueObject
     {
-        public decimal Amount { get; }
-        public string Currency { get; }
+        public int Id { get; set; }
+        public decimal Amount { get; init; }
+        public string Currency { get; init; }
+
+        private Money()
+        {
+            Amount = 0;
+            Currency = "INR";
+        }
 
         public Money(decimal amount, string currency = "INR")
         {
@@ -41,6 +49,12 @@ namespace TiffinBox.Domain.ValueObjects
         public static Money operator *(Money a, decimal multiplier)
         {
             return new Money(a.Amount * multiplier, a.Currency);
+        }
+
+        protected override IEnumerable<object> GetEqualityComponents()
+        {
+            yield return Amount;
+            yield return Currency;
         }
 
         public override string ToString() => $"{Currency} {Amount:F2}";

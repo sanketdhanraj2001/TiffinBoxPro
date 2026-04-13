@@ -38,7 +38,6 @@ namespace TiffinBox.Infrastructure.Persistence
         public IWalletRepository Wallets => _wallets ??= new WalletRepository(_context);
         public INotificationRepository Notifications => _notifications ??= new NotificationRepository(_context);
         public ISubscriptionRepository Subscriptions => _subscriptions ??= new SubscriptionRepository(_context);
-        // ✅ Add these new repository properties
         public ISubscriptionPlanRepository SubscriptionPlans => _subscriptionPlans ??= new SubscriptionPlanRepository(_context);
 
         public IMenuItemRepository MenuItems => _menuItems ??= new MenuItemRepository(_context);
