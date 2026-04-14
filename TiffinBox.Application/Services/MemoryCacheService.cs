@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -10,77 +11,73 @@ using TiffinBox.Application.Common.Interfaces;
 
 namespace TiffinBox.Application.Services
 {
-    public class RedisCacheService : ICacheService
+    public class MemoryCacheService : ICacheService
     {
-        private readonly IDistributedCache _distributedCache;
-        private readonly ILogger<RedisCacheService> _logger;
+        private readonly IMemoryCache _memoryCache;
+        private readonly ILogger<MemoryCacheService> _logger;
 
-        public RedisCacheService(
-            IDistributedCache distributedCache,
-            ILogger<RedisCacheService> logger)
+        public MemoryCacheService(IMemoryCache memoryCache, ILogger<MemoryCacheService> logger)
         {
-            _distributedCache = distributedCache;
+            _memoryCache = memoryCache;
             _logger = logger;
         }
 
-        public async Task<T?> GetAsync<T>(string key)
+        public Task<T?> GetAsync<T>(string key)
         {
             try
             {
-                var data = await _distributedCache.GetStringAsync(key);
-                if (string.IsNullOrEmpty(data))
-                    return default;
-                return JsonConvert.DeserializeObject<T>(data);
+                _memoryCache.TryGetValue(key, out T? value);
+                return Task.FromResult(value);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting cache key: {Key}", key);
-                return default;
+                return Task.FromResult(default(T));
             }
         }
 
-        public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+        public Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
         {
             try
             {
-                var options = new DistributedCacheEntryOptions();
+                var options = new MemoryCacheEntryOptions();
                 if (expiry.HasValue)
                     options.AbsoluteExpirationRelativeToNow = expiry;
                 else
                     options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
 
-                var data = JsonConvert.SerializeObject(value);
-                await _distributedCache.SetStringAsync(key, data, options);
+                _memoryCache.Set(key, value, options);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error setting cache key: {Key}", key);
             }
+            return Task.CompletedTask;
         }
 
-        public async Task RemoveAsync(string key)
+        public Task RemoveAsync(string key)
         {
             try
             {
-                await _distributedCache.RemoveAsync(key);
+                _memoryCache.Remove(key);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error removing cache key: {Key}", key);
             }
+            return Task.CompletedTask;
         }
 
-        public async Task<bool> ExistsAsync(string key)
+        public Task<bool> ExistsAsync(string key)
         {
             try
             {
-                var data = await _distributedCache.GetStringAsync(key);
-                return !string.IsNullOrEmpty(data);
+                return Task.FromResult(_memoryCache.TryGetValue(key, out _));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking existence for key: {Key}", key);
-                return false;
+                return Task.FromResult(false);
             }
         }
 
@@ -122,50 +119,24 @@ namespace TiffinBox.Application.Services
             return freshValue;
         }
 
-        public async Task<long> IncrementAsync(string key, long incrementBy = 1)
+        public Task<long> IncrementAsync(string key, long incrementBy = 1)
         {
-            try
-            {
-                var current = await GetAsync<long>(key);
-                var newValue = current + incrementBy;
-                await SetAsync(key, newValue);
-                return newValue;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error incrementing key: {Key}", key);
-                return 0;
-            }
+            throw new NotImplementedException();
         }
 
-        public async Task<long> DecrementAsync(string key, long decrementBy = 1)
+        public Task<long> DecrementAsync(string key, long decrementBy = 1)
         {
-            try
-            {
-                var current = await GetAsync<long>(key);
-                var newValue = current - decrementBy;
-                await SetAsync(key, newValue);
-                return newValue;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error decrementing key: {Key}", key);
-                return 0;
-            }
+            throw new NotImplementedException();
         }
 
-        public async Task RefreshAsync(string key, TimeSpan? expiry = null)
+        public Task RefreshAsync(string key, TimeSpan? expiry = null)
         {
-            var value = await GetAsync<string>(key);
-            if (value != null)
-            {
-                await SetAsync(key, value, expiry);
-            }
+            return Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern)
+        public Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern)
         {
-            return new List<string>();
+            return Task.FromResult<IEnumerable<string>>(new List<string>());
         }
     }
 }

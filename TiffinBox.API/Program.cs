@@ -42,7 +42,7 @@ builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 // ==================== Application Services ====================
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IAuthenticationService,AuthService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<VendorService>();
 builder.Services.AddScoped<AdminService>();
@@ -56,9 +56,10 @@ builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-// ✅ Register Memory Cache (No external dependency)
+//  Register Memory Cache (No external dependency)
 builder.Services.AddMemoryCache();
-builder.Services.AddScoped<ICacheService, RedisCacheService>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+
 
 // Register Current User Service
 builder.Services.AddHttpContextAccessor();
