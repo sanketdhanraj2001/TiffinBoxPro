@@ -49,7 +49,7 @@ namespace TiffinBox.Application.Services
         {
             try
             {
-                var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+                var user = await _unitOfWork.Users.GetByEmailAsync(request.EmailOrUserName);
 
                 if (user == null)
                     return ApiResponse<LoginResponseDto>.Fail("Invalid email or password");
@@ -95,7 +95,7 @@ namespace TiffinBox.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Login error for {Email}", request.Email);
+                _logger.LogError(ex, "Login error for {Email}", request.EmailOrUserName);
                 return ApiResponse<LoginResponseDto>.Fail("An error occurred during login");
             }
         }
@@ -195,30 +195,89 @@ namespace TiffinBox.Application.Services
 
         public async Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return ApiResponse<bool>.Fail("Email is required");
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(request.Email))
+                    return ApiResponse<bool>.Fail("Please enter a valid email address");
 
-            if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
-                return ApiResponse<bool>.Fail("Valid OTP is required");
+                if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
+                    return ApiResponse<bool>.Fail("Please enter a valid 6-digit OTP");
 
-            var cachedOtp = await _cacheService.GetAsync<string>($"otp:{request.Email}");
+                // Get cached OTP - ✅ FIXED: Use email_otp: instead of otp:
+                var cachedOtp = await _cacheService.GetAsync<string>($"email_otp:{request.Email}");
 
-            if (cachedOtp == null)
-                return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
+                if (cachedOtp == null)
+                {
+                    _logger.LogWarning("Email OTP expired for {Email}", request.Email);
+                    return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
+                }
 
-            if (cachedOtp != request.Otp)
-                return ApiResponse<bool>.Fail("Invalid OTP. Please try again.");
+                if (cachedOtp != request.Otp)
+                {
+                    _logger.LogWarning("Invalid email OTP attempt for {Email}. Expected: {Expected}, Got: {Actual}",
+                        request.Email, cachedOtp, request.Otp);
+                    return ApiResponse<bool>.Fail("Invalid OTP. Please enter the correct 6-digit OTP.");
+                }
 
-            var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
-            if (user == null)
-                return ApiResponse<bool>.Fail("User not found");
+                // Find user by email
+                var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
 
-            user.VerifyEmail();
-            await _unitOfWork.CompleteAsync();
-            await _cacheService.RemoveAsync($"otp:{request.Email}");
+                if (user == null)
+                {
+                    // User doesn't exist - store verified email for registration
+                    await _cacheService.SetAsync($"verified_email:{request.Email}", true, TimeSpan.FromMinutes(30));
+                    await _cacheService.RemoveAsync($"email_otp:{request.Email}");
 
-            return ApiResponse<bool>.Ok(true, "Email verified successfully");
+                    _logger.LogInformation("Email {Email} verified for new registration", request.Email);
+
+                    return ApiResponse<bool>.Ok(true, "Email verified successfully! You can now complete your registration.");
+                }
+
+                // User exists - mark email as verified
+                user.VerifyEmail();  // This sets IsEmailVerified = true
+                await _unitOfWork.CompleteAsync();
+
+                // Remove OTP from cache after successful verification
+                await _cacheService.RemoveAsync($"email_otp:{request.Email}");
+
+                _logger.LogInformation("Email {Email} verified successfully for user {UserId}", request.Email, user.Id);
+
+                return ApiResponse<bool>.Ok(true, "Email verified successfully!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying email OTP for {Email}", request.Email);
+                return ApiResponse<bool>.Fail("Failed to verify OTP. Please try again.");
+            }
         }
+
+        //public async Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequest request)
+        //{
+        //    if (string.IsNullOrWhiteSpace(request.Email))
+        //        return ApiResponse<bool>.Fail("Email is required");
+
+        //    if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
+        //        return ApiResponse<bool>.Fail("Valid OTP is required");
+
+        //    var cachedOtp = await _cacheService.GetAsync<string>($"otp:{request.Email}");
+
+        //    if (cachedOtp == null)
+        //        return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
+
+        //    if (cachedOtp != request.Otp)
+        //        return ApiResponse<bool>.Fail("Invalid OTP. Please try again.");
+
+        //    var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+        //    if (user == null)
+        //        return ApiResponse<bool>.Fail("User not found");
+
+        //    user.VerifyEmail();
+        //    await _unitOfWork.CompleteAsync();
+        //    await _cacheService.RemoveAsync($"otp:{request.Email}");
+
+        //    return ApiResponse<bool>.Ok(true, "Email verified successfully");
+        //}
 
         public async Task<ApiResponse<bool>> ForgotPasswordAsync(ForgotPasswordRequest request)
         {
@@ -382,6 +441,166 @@ namespace TiffinBox.Application.Services
                 CreatedAt = user.CreatedAt,
                 LastLoginAt = user.LastLoginAt
             };
+        }
+
+
+        // ==================== Mobile OTP Methods ====================
+
+        /// Send OTP to mobile number for verification
+        public async Task<ApiResponse<bool>> SendMobileOtpAsync(SendMobileOtpRequest request)
+        {
+            try
+            {
+                // Validate phone number
+                if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length != 10)
+                    return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
+
+                // Check if user exists with this phone number (optional - during registration we don't check)
+                // var existingUser = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
+
+                // Generate OTP (6 digits)
+                var otp = GenerateOtp();
+
+                // Store OTP in cache with 10 minutes expiry
+                await _cacheService.SetAsync($"mobile_otp:{request.PhoneNumber}", otp, TimeSpan.FromMinutes(10));
+
+                // Send OTP via SMS
+                await _smsService.SendOtpVerificationAsync(request.PhoneNumber, otp);
+
+                _logger.LogInformation("Mobile OTP sent to {PhoneNumber}", request.PhoneNumber);
+
+                return ApiResponse<bool>.Ok(true, "OTP sent successfully to your mobile number. Valid for 10 minutes.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending mobile OTP to {PhoneNumber}", request.PhoneNumber);
+                return ApiResponse<bool>.Fail("Failed to send OTP. Please try again.");
+            }
+        }
+
+        /// Verify mobile number with OTP and update IsPhoneVerified flag
+        public async Task<ApiResponse<bool>> VerifyMobileOtpAsync(VerifyMobileOtpRequest request)
+        {
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length != 10)
+                    return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
+
+                if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
+                    return ApiResponse<bool>.Fail("Please enter a valid 6-digit OTP");
+
+                // Get cached OTP
+                var cachedOtp = await _cacheService.GetAsync<string>($"mobile_otp:{request.PhoneNumber}");
+
+                if (cachedOtp == null)
+                {
+                    _logger.LogWarning("OTP expired for {PhoneNumber}", request.PhoneNumber);
+                    return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
+                }
+
+                if (cachedOtp != request.Otp)
+                {
+                    _logger.LogWarning("Invalid OTP attempt for {PhoneNumber}. Expected: {Expected}, Got: {Actual}",
+                        request.PhoneNumber, cachedOtp, request.Otp);
+                    return ApiResponse<bool>.Fail("Invalid OTP. Please enter the correct 6-digit OTP.");
+                }
+
+                // Find user by phone number
+                var user = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
+
+                if (user == null)
+                {
+                    // User doesn't exist - store verified phone for registration
+                    await _cacheService.SetAsync($"verified_phone:{request.PhoneNumber}", true, TimeSpan.FromMinutes(30));
+                    await _cacheService.RemoveAsync($"mobile_otp:{request.PhoneNumber}");
+
+                    _logger.LogInformation("Phone number {PhoneNumber} verified for new registration", request.PhoneNumber);
+
+                    return ApiResponse<bool>.Ok(true, "Mobile number verified successfully! You can now complete your registration.");
+                }
+
+                // User exists - mark phone as verified
+                user.VerifyPhone();  // This sets IsPhoneVerified = true
+                await _unitOfWork.CompleteAsync();
+
+                // Remove OTP from cache after successful verification
+                await _cacheService.RemoveAsync($"mobile_otp:{request.PhoneNumber}");
+
+                _logger.LogInformation("Mobile number {PhoneNumber} verified successfully for user {UserId}", request.PhoneNumber, user.Id);
+
+                return ApiResponse<bool>.Ok(true, "Mobile number verified successfully!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying mobile OTP for {PhoneNumber}", request.PhoneNumber);
+                return ApiResponse<bool>.Fail("Failed to verify OTP. Please try again.");
+            }
+        }
+
+        /// Resend OTP to mobile number
+        public async Task<ApiResponse<bool>> ResendMobileOtpAsync(ResendMobileOtpRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length != 10)
+                    return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
+
+                // Generate new OTP
+                var otp = GenerateOtp();
+
+                // Store new OTP in cache (overwrites old one)
+                await _cacheService.SetAsync($"mobile_otp:{request.PhoneNumber}", otp, TimeSpan.FromMinutes(10));
+
+                // Send OTP via SMS
+                await _smsService.SendOtpVerificationAsync(request.PhoneNumber, otp);
+
+                _logger.LogInformation("Mobile OTP resent to {PhoneNumber}", request.PhoneNumber);
+
+                return ApiResponse<bool>.Ok(true, "OTP resent successfully. Valid for 10 minutes.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resending mobile OTP to {PhoneNumber}", request.PhoneNumber);
+                return ApiResponse<bool>.Fail("Failed to resend OTP. Please try again.");
+            }
+        }
+
+        // ==================== Email OTP Methods ====================
+
+        /// Send OTP to email for verification
+        public async Task<ApiResponse<bool>> SendEmailOtpAsync(SendEmailOtpRequest request)
+        {
+            try
+            {
+                // Validate email
+                if (string.IsNullOrWhiteSpace(request.Email))
+                    return ApiResponse<bool>.Fail("Please enter a valid email address");
+
+                // Check if user exists with this email
+                var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+
+                if (existingUser != null && existingUser.IsEmailVerified)
+                    return ApiResponse<bool>.Fail("Email is already verified. Please login to continue.");
+
+                // Generate OTP (6 digits)
+                var otp = GenerateOtp();
+
+                // Store OTP in cache with 10 minutes expiry
+                await _cacheService.SetAsync($"email_otp:{request.Email}", otp, TimeSpan.FromMinutes(10));
+
+                // Send OTP via Email
+                await _emailService.SendVerificationEmailAsync(request.Email, otp);
+
+                _logger.LogInformation("Email OTP sent to {Email}", request.Email);
+
+                return ApiResponse<bool>.Ok(true, "OTP sent successfully to your email. Valid for 10 minutes.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email OTP to {Email}", request.Email);
+                return ApiResponse<bool>.Fail("Failed to send OTP. Please try again.");
+            }
         }
     }
 }

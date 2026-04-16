@@ -18,11 +18,23 @@ namespace TiffinBox.Application.Common.Interfaces
         Task<ApiResponse<TokenResponseDto>> RefreshTokenAsync(RefreshTokenRequest request);
         Task<ApiResponse<bool>> LogoutAsync(Guid userId);
         Task<ApiResponse<UserProfileDto>> GetCurrentUserAsync(Guid userId);
-        Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequest request);
         Task<ApiResponse<bool>> ForgotPasswordAsync(DTOs.Auth.ForgotPasswordRequest request);
         Task<ApiResponse<bool>> ResetPasswordAsync(DTOs.Auth.ResetPasswordRequest request);
         Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, string oldPassword, string newPassword);
         Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request);
+
+        //  Mobile OTP Methods
+        Task<ApiResponse<bool>> SendMobileOtpAsync(SendMobileOtpRequest request);
+        Task<ApiResponse<bool>> VerifyMobileOtpAsync(VerifyMobileOtpRequest request);
+        Task<ApiResponse<bool>> ResendMobileOtpAsync(ResendMobileOtpRequest request);
+
+
+
+        // Email OTP Methods
+        Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequest request);
         Task<ApiResponse<bool>> ResendVerificationOtpAsync(string email);
+        Task<ApiResponse<bool>> SendEmailOtpAsync(SendEmailOtpRequest request);
+
+       
     }
 }

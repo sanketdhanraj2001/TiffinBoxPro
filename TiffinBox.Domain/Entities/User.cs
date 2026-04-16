@@ -13,6 +13,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class User : BaseEntity
     {
+        public string UserName { get; private set; }
         public string Email { get; private set; }
         public string PhoneNumber { get; private set; }
         public string PasswordHash { get; private set; }

@@ -8,6 +8,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TiffinBox.Application.Common.Interfaces;
 using TiffinBox.Application.Common.Settings;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.Types;
 
 namespace TiffinBox.Application.Services
 {
@@ -24,39 +27,103 @@ namespace TiffinBox.Application.Services
             _logger = logger;
         }
 
+        //public async Task SendSmsAsync(string phoneNumber, string message)
+        //{
+        //    try
+        //    {
+        //        var formattedNumber = FormatPhoneNumber(phoneNumber);
+
+        //        if (!IsValidPhoneNumber(formattedNumber))
+        //        {
+        //            _logger.LogWarning("Invalid phone number: {PhoneNumber}", phoneNumber);
+        //            return;
+        //        }
+
+        //        _logger.LogInformation("Sending SMS to {PhoneNumber}: {Message}", formattedNumber, message);
+
+        //        // In production, integrate with actual SMS provider (Twilio, AWS SNS, etc.)
+        //        // Example with Twilio:
+        //        /*
+        //        TwilioClient.Init(_smsSettings.AccountSid, _smsSettings.AuthToken);
+        //        var message = await MessageResource.CreateAsync(
+        //            body: message,
+        //            from: new PhoneNumber(_smsSettings.FromPhoneNumber),
+        //            to: new PhoneNumber(formattedNumber)
+        //        );
+        //        */
+
+        //        // For now, just log (production ready code would call actual API)
+        //        await Task.CompletedTask;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Failed to send SMS to {PhoneNumber}", phoneNumber);
+        //        throw;
+        //    }
+        //}
+
         public async Task SendSmsAsync(string phoneNumber, string message)
         {
             try
             {
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(phoneNumber))
+                {
+                    _logger.LogWarning("Phone number is null or empty");
+                    throw new ArgumentException("Phone number cannot be empty");
+                }
+
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    _logger.LogWarning("Message is null or empty");
+                    throw new ArgumentException("Message cannot be empty");
+                }
+
+                // Format phone number
                 var formattedNumber = FormatPhoneNumber(phoneNumber);
 
+                // Validate formatted phone number
                 if (!IsValidPhoneNumber(formattedNumber))
                 {
-                    _logger.LogWarning("Invalid phone number: {PhoneNumber}", phoneNumber);
-                    return;
+                    _logger.LogWarning("Invalid phone number format: {PhoneNumber}", phoneNumber);
+                    throw new ArgumentException($"Invalid phone number: {phoneNumber}");
                 }
 
                 _logger.LogInformation("Sending SMS to {PhoneNumber}: {Message}", formattedNumber, message);
 
                 // In production, integrate with actual SMS provider (Twilio, AWS SNS, etc.)
-                // Example with Twilio:
-                /*
+                // Example with Twilio (uncomment when Twilio package is installed):
+
                 TwilioClient.Init(_smsSettings.AccountSid, _smsSettings.AuthToken);
-                var message = await MessageResource.CreateAsync(
+                var smsMessage = await MessageResource.CreateAsync(
                     body: message,
                     from: new PhoneNumber(_smsSettings.FromPhoneNumber),
                     to: new PhoneNumber(formattedNumber)
                 );
-                */
+                _logger.LogInformation("SMS sent successfully. SID: {Sid}", smsMessage.Sid);
 
-                // For now, just log (production ready code would call actual API)
+
+                // For development, simulate sending
                 await Task.CompletedTask;
+
+                _logger.LogInformation("SMS sent successfully to {PhoneNumber}", formattedNumber);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Invalid argument for SMS to {PhoneNumber}", phoneNumber);
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send SMS to {PhoneNumber}", phoneNumber);
-                throw;
+                throw new InvalidOperationException($"Failed to send SMS to {phoneNumber}: {ex.Message}", ex);
             }
+        }
+
+        public async Task SendOtpVerificationAsync(string phoneNumber, string otp)
+        {
+            var message = $"Welcome to TiffinBox Pro! Your mobile verification OTP is: {otp}. This OTP is valid for 10 minutes. Please do not share it with anyone.";
+            await SendSmsAsync(phoneNumber, message);
         }
 
         public async Task SendOtpAsync(string phoneNumber, string otp)

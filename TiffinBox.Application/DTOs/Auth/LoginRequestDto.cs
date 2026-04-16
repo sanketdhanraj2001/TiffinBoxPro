@@ -10,7 +10,7 @@ namespace TiffinBox.Application.DTOs.Auth
 {
     public class LoginRequestDto
     {
-        public string Email { get; set; } = string.Empty;  
+        public string EmailOrUserName { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;  
     }
 
@@ -59,10 +59,40 @@ namespace TiffinBox.Application.DTOs.Auth
     }
 
 
-    //public class VerifyOtpRequest
-    //{
-    //    public string Email { get; set; } = string.Empty;
-    //    public string Otp { get; set; } = string.Empty;
-    //}
+    public class SendMobileOtpRequest
+    {
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be exactly 10 digits")]
+        [RegularExpression("^[0-9]{10}$", ErrorMessage = "Phone number must contain only digits")]
+        public string PhoneNumber { get; set; } = string.Empty;
+    }
+
+    public class VerifyMobileOtpRequest
+    {
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "OTP is required")]
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "OTP must be exactly 6 digits")]
+        [RegularExpression("^[0-9]{6}$", ErrorMessage = "OTP must contain only numbers")]
+        public string Otp { get; set; } = string.Empty;
+    }
+
+
+    public class ResendMobileOtpRequest
+    {
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        public string PhoneNumber { get; set; } = string.Empty;
+    }
+
+    public class SendEmailOtpRequest
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
+    }
 
 }

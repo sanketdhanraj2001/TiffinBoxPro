@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TiffinBox.Application.Common.Interfaces;
+using TiffinBox.Application.Common.Models;
 using TiffinBox.Application.DTOs.Auth;
 
 namespace TiffinBox.API.Controllers
@@ -101,6 +102,60 @@ namespace TiffinBox.API.Controllers
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
             var result = await _authService.LogoutAsync(userId);
             return Ok(result);
+        }
+
+
+        /// Send OTP to mobile number for verification
+        [HttpPost("send-mobile-otp")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+        public async Task<IActionResult> SendMobileOtp([FromBody] SendMobileOtpRequest request)
+        {
+            var result = await _authService.SendMobileOtpAsync(request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        /// Verify mobile number with OTP
+        [HttpPost("verify-mobile-otp")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+        public async Task<IActionResult> VerifyMobileOtp([FromBody] VerifyMobileOtpRequest request)
+        {
+            var result = await _authService.VerifyMobileOtpAsync(request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        /// Resend OTP to mobile number
+        [HttpPost("resend-mobile-otp")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+        public async Task<IActionResult> ResendMobileOtp([FromBody] ResendMobileOtpRequest request)
+        {
+            var result = await _authService.ResendMobileOtpAsync(request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // ==================== Email OTP Endpoints ====================
+
+        [HttpPost("send-email-otp")]
+        public async Task<IActionResult> SendEmailOtp([FromBody] SendEmailOtpRequest request)
+        {
+            var result = await _authService.SendEmailOtpAsync(request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPost("verify-email-otp")]
+        public async Task<IActionResult> VerifyEmailOtp([FromBody] VerifyOtpRequest request)
+        {
+            var result = await _authService.VerifyOtpAsync(request);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPost("resend-email-otp")]
+        public async Task<IActionResult> ResendEmailOtp([FromBody] ResendOtpRequest request)
+        {
+            var result = await _authService.ResendVerificationOtpAsync(request.Email);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
     }
 }

@@ -9,6 +9,8 @@ namespace TiffinBox.Application.Common.Interfaces
     public interface ISmsService
     {
         Task SendSmsAsync(string phoneNumber, string message);
+        // NEW: OTP verification for registration
+        Task SendOtpVerificationAsync(string phoneNumber, string otp);
         Task SendOtpAsync(string phoneNumber, string otp);
         Task SendDeliveryStatusAsync(string phoneNumber, string orderId, string status);
         Task SendOrderConfirmationAsync(string phoneNumber, string orderId, string vendorName, string deliveryDate);
