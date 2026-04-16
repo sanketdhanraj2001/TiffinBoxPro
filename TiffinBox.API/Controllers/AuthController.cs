@@ -104,6 +104,7 @@ namespace TiffinBox.API.Controllers
             return Ok(result);
         }
 
+        // ==================== Mobile OTP Endpoints ====================
 
         /// Send OTP to mobile number for verification
         [HttpPost("send-mobile-otp")]
