@@ -60,32 +60,162 @@ namespace TiffinBox.Application.Services
         {
             var subject = "Verify Your Email - TiffinBox Pro";
             var body = $@"
+                <!DOCTYPE html>
                 <html>
                 <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>Email Verification</title>
                     <style>
-                        body {{ font-family: Arial, sans-serif; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; }}
-                        .content {{ padding: 20px; }}
-                        .otp {{ font-size: 32px; font-weight: bold; color: #4CAF50; text-align: center; padding: 20px; }}
-                        .footer {{ text-align: center; padding: 20px; font-size: 12px; color: #666; }}
+                        body {{
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            background-color: #f8f9fa;
+                            margin: 0;
+                            padding: 0;
+                        }}
+                        .container {{
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #ffffff;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        }}
+                        .header {{
+                            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                            color: white;
+                            padding: 30px 20px;
+                            text-align: center;
+                        }}
+                        .header h1 {{
+                            margin: 0;
+                            font-size: 28px;
+                            font-weight: bold;
+                            letter-spacing: 1px;
+                        }}
+                        .header p {{
+                            margin: 10px 0 0;
+                            font-size: 14px;
+                            opacity: 0.9;
+                        }}
+                        .content {{
+                            padding: 40px 30px;
+                            background-color: #ffffff;
+                        }}
+                        .content h2 {{
+                            color: #333333;
+                            font-size: 24px;
+                            margin-top: 0;
+                            margin-bottom: 20px;
+                        }}
+                        .content p {{
+                            color: #666666;
+                            font-size: 16px;
+                            line-height: 1.5;
+                            margin-bottom: 20px;
+                        }}
+                        .otp-box {{
+                            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+                            border: 2px dashed #f97316;
+                            border-radius: 12px;
+                            padding: 20px;
+                            text-align: center;
+                            margin: 25px 0;
+                        }}
+                        .otp {{
+                            font-size: 36px;
+                            font-weight: bold;
+                            color: #ea580c;
+                            letter-spacing: 8px;
+                            font-family: 'Courier New', monospace;
+                        }}
+                        .otp-label {{
+                            font-size: 14px;
+                            color: #f97316;
+                            margin-top: 10px;
+                            display: block;
+                        }}
+                        .info-box {{
+                            background-color: #f8f9fa;
+                            border-left: 4px solid #f97316;
+                            padding: 15px 20px;
+                            margin: 25px 0;
+                            border-radius: 8px;
+                        }}
+                        .info-box p {{
+                            margin: 0;
+                            font-size: 14px;
+                        }}
+                        .button {{
+                            display: inline-block;
+                            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                            color: white;
+                            text-decoration: none;
+                            padding: 12px 30px;
+                            border-radius: 25px;
+                            font-weight: bold;
+                            margin: 20px 0;
+                            text-align: center;
+                        }}
+                        .footer {{
+                            background-color: #f8f9fa;
+                            padding: 20px;
+                            text-align: center;
+                            border-top: 1px solid #e9ecef;
+                        }}
+                        .footer p {{
+                            margin: 5px 0;
+                            font-size: 12px;
+                            color: #999999;
+                        }}
+                        .footer a {{
+                            color: #f97316;
+                            text-decoration: none;
+                        }}
+                        .warning {{
+                            color: #dc2626;
+                            font-size: 12px;
+                            margin-top: 15px;
+                        }}
                     </style>
                 </head>
-                <body>
+                <body style='background-color: #f8f9fa; padding: 20px;'>
                     <div class='container'>
                         <div class='header'>
                             <h1>TiffinBox Pro</h1>
+                            <p>Fresh Home-Cooked Meals Delivered</p>
                         </div>
+                        
                         <div class='content'>
-                            <h2>Email Verification</h2>
-                            <p>Thank you for registering with TiffinBox Pro!</p>
-                            <p>Please use the following OTP to verify your email address:</p>
-                            <div class='otp'>{otp}</div>
-                            <p>This OTP is valid for 10 minutes.</p>
-                            <p>If you didn't request this, please ignore this email.</p>
+                            <h2>Verify Your Email Address</h2>
+                            <p>Thank you for choosing <strong>TiffinBox Pro</strong>! Please verify your email address to complete your registration and start enjoying fresh, home-cooked meals.</p>
+                            
+                            <div class='otp-box'>
+                                <div class='otp'>{otp}</div>
+                                <span class='otp-label'>Your One-Time Password (OTP)</span>
+                            </div>
+                            
+                            <div class='info-box'>
+                                <p>✅ This OTP is valid for <strong>10 minutes</strong></p>
+                                <p>🔒 For security reasons, do not share this OTP with anyone</p>
+                                <p>📧 If you didn't request this verification, please ignore this email</p>
+                            </div>
+                            
+                            <p style='text-align: center; margin-top: 30px;'>
+                                <span style='color: #999;'>Need help? Contact our support team at</span>
+                                <br>
+                                <a href='mailto:support@tiffinbox.com' style='color: #f97316;'>support@tiffinbox.com</a>
+                            </p>
                         </div>
+                        
                         <div class='footer'>
                             <p>&copy; 2024 TiffinBox Pro. All rights reserved.</p>
+                            <p>
+                                <a href='#'>Privacy Policy</a> | 
+                                <a href='#'>Terms of Service</a> | 
+                                <a href='#'>Contact Us</a>
+                            </p>
+                            <p>Made with ❤️ for home-cooked meals</p>
                         </div>
                     </div>
                 </body>
