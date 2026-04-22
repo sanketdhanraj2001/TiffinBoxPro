@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TiffinBox.Application.Common.Interfaces;
@@ -18,118 +19,138 @@ namespace TiffinBox.Application.Services
     {
         private readonly SmsSettings _smsSettings;
         private readonly ILogger<SmsService> _logger;
+        private readonly HttpClient _httpClient;
 
-        public SmsService(
-            IOptions<SmsSettings> smsSettings,
-            ILogger<SmsService> logger)
+        public SmsService(IOptions<SmsSettings> smsSettings, ILogger<SmsService> logger)
         {
             _smsSettings = smsSettings.Value;
             _logger = logger;
+            _httpClient = new HttpClient();
         }
-
-        //public async Task SendSmsAsync(string phoneNumber, string message)
-        //{
-        //    try
-        //    {
-        //        var formattedNumber = FormatPhoneNumber(phoneNumber);
-
-        //        if (!IsValidPhoneNumber(formattedNumber))
-        //        {
-        //            _logger.LogWarning("Invalid phone number: {PhoneNumber}", phoneNumber);
-        //            return;
-        //        }
-
-        //        _logger.LogInformation("Sending SMS to {PhoneNumber}: {Message}", formattedNumber, message);
-
-        //        // In production, integrate with actual SMS provider (Twilio, AWS SNS, etc.)
-        //        // Example with Twilio:
-        //        /*
-        //        TwilioClient.Init(_smsSettings.AccountSid, _smsSettings.AuthToken);
-        //        var message = await MessageResource.CreateAsync(
-        //            body: message,
-        //            from: new PhoneNumber(_smsSettings.FromPhoneNumber),
-        //            to: new PhoneNumber(formattedNumber)
-        //        );
-        //        */
-
-        //        // For now, just log (production ready code would call actual API)
-        //        await Task.CompletedTask;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Failed to send SMS to {PhoneNumber}", phoneNumber);
-        //        throw;
-        //    }
-        //}
 
         public async Task SendSmsAsync(string phoneNumber, string message)
         {
             try
             {
-                // Validate inputs
-                if (string.IsNullOrWhiteSpace(phoneNumber))
-                {
-                    _logger.LogWarning("Phone number is null or empty");
-                    throw new ArgumentException("Phone number cannot be empty");
-                }
-
-                if (string.IsNullOrWhiteSpace(message))
-                {
-                    _logger.LogWarning("Message is null or empty");
-                    throw new ArgumentException("Message cannot be empty");
-                }
-
-                // Format phone number
                 var formattedNumber = FormatPhoneNumber(phoneNumber);
 
-                // Validate formatted phone number
                 if (!IsValidPhoneNumber(formattedNumber))
                 {
-                    _logger.LogWarning("Invalid phone number format: {PhoneNumber}", phoneNumber);
+                    _logger.LogWarning("Invalid phone number: {PhoneNumber}", phoneNumber);
                     throw new ArgumentException($"Invalid phone number: {phoneNumber}");
                 }
 
-                _logger.LogInformation("Sending SMS to {PhoneNumber}: {Message}", formattedNumber, message);
-
-                // In production, integrate with actual SMS provider (Twilio, AWS SNS, etc.)
-                // Example with Twilio (uncomment when Twilio package is installed):
-
-                TwilioClient.Init(_smsSettings.AccountSid, _smsSettings.AuthToken);
-                var smsMessage = await MessageResource.CreateAsync(
-                    body: message,
-                    from: new PhoneNumber(_smsSettings.FromPhoneNumber),
-                    to: new PhoneNumber(formattedNumber)
-                );
-                _logger.LogInformation("SMS sent successfully. SID: {Sid}", smsMessage.Sid);
-
-
-                // For development, simulate sending
-                await Task.CompletedTask;
+                if (_smsSettings.Provider == "2Factor")
+                {
+                    await SendVia2Factor(formattedNumber);
+                }
+                else if (_smsSettings.Provider == "Mock")
+                {
+                    _logger.LogInformation("MOCK SMS - To: {PhoneNumber}, Message: {Message}", formattedNumber, message);
+                }
+                else
+                {
+                    _logger.LogWarning("Unknown SMS provider: {Provider}", _smsSettings.Provider);
+                }
 
                 _logger.LogInformation("SMS sent successfully to {PhoneNumber}", formattedNumber);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Invalid argument for SMS to {PhoneNumber}", phoneNumber);
-                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send SMS to {PhoneNumber}", phoneNumber);
-                throw new InvalidOperationException($"Failed to send SMS to {phoneNumber}: {ex.Message}", ex);
+                throw;
+            }
+        }
+
+        // ✅ 2Factor SMS OTP - uses approved template
+        private async Task SendVia2Factor(string phoneNumber)
+        {
+            try
+            {
+                var formattedNumber = FormatPhoneNumberFor2Factor(phoneNumber);
+                var templateName = "TiffinBox Pro";
+
+                var url = $"https://2factor.in/API/V1/{_smsSettings.ApiKey}/SMS/{formattedNumber}/AUTOGEN/{templateName}";
+
+                _logger.LogInformation("2Factor Request URL: {Url}", url.Replace(_smsSettings.ApiKey, "***HIDDEN***"));
+
+                var response = await _httpClient.GetAsync(url);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation("2Factor Response: {Response}", responseBody);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("2Factor Error - StatusCode: {StatusCode}, Response: {Response}", response.StatusCode, responseBody);
+                    throw new Exception($"2Factor failed: {responseBody}");
+                }
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+                var status = root.GetProperty("Status").GetString();
+
+                if (status != "Success")
+                {
+                    var details = root.GetProperty("Details").GetString();
+                    _logger.LogError("2Factor API Error: {Details}", details);
+                    throw new Exception($"2Factor error: {details}");
+                }
+
+                var sessionId = root.GetProperty("Details").GetString();
+                _logger.LogInformation("2Factor - OTP sent successfully. SessionId: {SessionId}", sessionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "2Factor - Failed to send SMS to {PhoneNumber}", phoneNumber);
+                throw;
+            }
+        }
+
+        // ✅ Format phone number for 2Factor API (e.g., 917666163523)
+        private string FormatPhoneNumberFor2Factor(string phoneNumber)
+        {
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+
+            if (digits.StartsWith("0"))
+                digits = digits.Substring(1);
+
+            if (!digits.StartsWith("91"))
+                digits = "91" + digits;
+
+            return digits;
+        }
+
+        // ✅ Verify OTP using session ID from 2Factor
+        public async Task<bool> VerifyOtpAsync(string sessionId, string otp)
+        {
+            try
+            {
+                var url = $"https://2factor.in/API/V1/{_smsSettings.ApiKey}/SMS/VERIFY/{sessionId}/{otp}";
+
+                var response = await _httpClient.GetAsync(url);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+                var status = root.GetProperty("Status").GetString();
+
+                return status == "Success";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying OTP");
+                return false;
             }
         }
 
         public async Task SendOtpVerificationAsync(string phoneNumber, string otp)
         {
-            var message = $"Welcome to TiffinBox Pro! Your mobile verification OTP is: {otp}. This OTP is valid for 10 minutes. Please do not share it with anyone.";
-            await SendSmsAsync(phoneNumber, message);
+            await SendSmsAsync(phoneNumber, null);
         }
 
         public async Task SendOtpAsync(string phoneNumber, string otp)
         {
-            var message = $"Your TiffinBox Pro OTP is: {otp}. This OTP is valid for 10 minutes. Do not share it with anyone.";
-            await SendSmsAsync(phoneNumber, message);
+            await SendSmsAsync(phoneNumber, null);
         }
 
         public async Task SendDeliveryStatusAsync(string phoneNumber, string orderId, string status)
@@ -146,43 +167,34 @@ namespace TiffinBox.Application.Services
 
         public async Task SendSubscriptionReminderAsync(string phoneNumber, string subscriptionId, int daysRemaining)
         {
-            var message = $"TiffinBox Pro: Your subscription #{subscriptionId} has {daysRemaining} days remaining. Renew now to continue uninterrupted service.";
+            var message = $"TiffinBox Pro: Your subscription #{subscriptionId} has {daysRemaining} days remaining. Renew now!";
             await SendSmsAsync(phoneNumber, message);
         }
 
         public async Task SendPaymentConfirmationAsync(string phoneNumber, decimal amount, string transactionId)
         {
-            var message = $"TiffinBox Pro: Payment of ₹{amount} received successfully. Transaction ID: {transactionId}. Thank you for your payment.";
+            var message = $"TiffinBox Pro: Payment of ₹{amount} received successfully. Transaction ID: {transactionId}.";
             await SendSmsAsync(phoneNumber, message);
         }
 
         public async Task SendWalletUpdateAsync(string phoneNumber, decimal amount, string transactionType, decimal balance)
         {
-            var message = $"TiffinBox Pro: ₹{amount} has been {transactionType}ed from your wallet. Current balance: ₹{balance}.";
+            var message = $"TiffinBox Pro: ₹{amount} has been {transactionType}ed from your wallet. Balance: ₹{balance}.";
             await SendSmsAsync(phoneNumber, message);
         }
 
         public async Task SendPromotionalSmsAsync(string phoneNumber, string message)
         {
-            // Only send if user has opted in for promotional messages
-            // Check user's marketing preferences before sending
-
-            var promotionalMessage = $"TiffinBox Pro: {message}";
-            await SendSmsAsync(phoneNumber, promotionalMessage);
+            var promoMessage = $"TiffinBox Pro: {message}";
+            await SendSmsAsync(phoneNumber, promoMessage);
         }
 
         public bool IsValidPhoneNumber(string phoneNumber)
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 return false;
-
-            // Remove any whitespace
-            phoneNumber = phoneNumber.Trim();
-
-            // Basic international phone number validation
-            // Allows: +91XXXXXXXXXX, 91XXXXXXXXXX, 0XXXXXXXXXX
-            var pattern = @"^(\+?\d{1,3}[- ]?)?\d{10}$";
-            return Regex.IsMatch(phoneNumber, pattern);
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            return digits.Length == 10 || (digits.Length == 12 && digits.StartsWith("91"));
         }
 
         public string FormatPhoneNumber(string phoneNumber, string countryCode = "+91")
@@ -190,26 +202,20 @@ namespace TiffinBox.Application.Services
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 return phoneNumber;
 
-            // Remove any non-digit characters
-            var digits = Regex.Replace(phoneNumber, @"[^\d]", "");
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
 
-            // If number starts with 0, remove it
             if (digits.StartsWith("0"))
                 digits = digits[1..];
 
-            // If number is 10 digits, add country code
             if (digits.Length == 10)
                 return $"{countryCode}{digits}";
 
-            // If number starts with country code (e.g., 91 for India)
             if (digits.Length == 12 && digits.StartsWith("91"))
                 return $"+{digits}";
 
-            // If number already has + prefix
             if (phoneNumber.StartsWith("+"))
                 return phoneNumber;
 
-            // Default: add country code
             return $"{countryCode}{digits}";
         }
     }

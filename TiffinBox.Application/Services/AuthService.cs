@@ -204,7 +204,7 @@ namespace TiffinBox.Application.Services
                 if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
                     return ApiResponse<bool>.Fail("Please enter a valid 6-digit OTP");
 
-                // Get cached OTP - ✅ FIXED: Use email_otp: instead of otp:
+                // Get cached OTP - FIXED: Use email_otp: instead of otp:
                 var cachedOtp = await _cacheService.GetAsync<string>($"email_otp:{request.Email}");
 
                 if (cachedOtp == null)
@@ -447,27 +447,80 @@ namespace TiffinBox.Application.Services
         // ==================== Mobile OTP Methods ====================
 
         /// Send OTP to mobile number for verification
+        /// <summary>
+        /// Helper method to extract 10-digit phone number from various formats
+        /// </summary>
+        private string Extract10DigitPhoneNumber(string phoneNumber)
+        {
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return string.Empty;
+
+            // Extract only digits
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+
+            // If we have 10 digits, return as is
+            if (digits.Length == 10)
+                return digits;
+
+            // If we have 12 digits starting with 91 (India country code), take last 10
+            if (digits.Length == 12 && digits.StartsWith("91"))
+                return digits.Substring(2);
+
+            // If we have more than 10 digits, take last 10
+            if (digits.Length > 10)
+                return digits.Substring(digits.Length - 10);
+
+            // Return as is (will fail validation if not 10 digits)
+            return digits;
+        }
+
+        /// <summary>
+        /// Format phone number for SMS (adds +91 country code)
+        /// </summary>
+        private string FormatPhoneNumberForSms(string phoneNumber)
+        {
+            var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+
+            if (digits.Length == 10)
+                return $"+91{digits}";
+
+            if (digits.Length == 12 && digits.StartsWith("91"))
+                return $"+{digits}";
+
+            if (phoneNumber.StartsWith("+"))
+                return phoneNumber;
+
+            return $"+91{digits}";
+        }
+
+        /// Send OTP to mobile number for verification
         public async Task<ApiResponse<bool>> SendMobileOtpAsync(SendMobileOtpRequest request)
         {
             try
             {
+                // Extract 10-digit phone number (handles +91, 91, or just 10 digits)
+                var phoneNumber10Digit = Extract10DigitPhoneNumber(request.PhoneNumber);
+
                 // Validate phone number
-                if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length != 10)
+                if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
                 // Check if user exists with this phone number (optional - during registration we don't check)
-                // var existingUser = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
+                // var existingUser = await _unitOfWork.Users.GetByPhoneAsync(phoneNumber10Digit);
 
                 // Generate OTP (6 digits)
                 var otp = GenerateOtp();
 
-                // Store OTP in cache with 10 minutes expiry
-                await _cacheService.SetAsync($"mobile_otp:{request.PhoneNumber}", otp, TimeSpan.FromMinutes(10));
+                // Store OTP in cache with 10 minutes expiry (using 10-digit number as key)
+                await _cacheService.SetAsync($"mobile_otp:{phoneNumber10Digit}", otp, TimeSpan.FromMinutes(10));
+
+                // Format full number for SMS (adds +91)
+                var fullPhoneNumber = FormatPhoneNumberForSms(phoneNumber10Digit);
 
                 // Send OTP via SMS
-                await _smsService.SendOtpVerificationAsync(request.PhoneNumber, otp);
+                await _smsService.SendOtpAsync(fullPhoneNumber, otp);
 
-                _logger.LogInformation("Mobile OTP sent to {PhoneNumber}", request.PhoneNumber);
+                _logger.LogInformation("Mobile OTP sent to {PhoneNumber}", phoneNumber10Digit);
 
                 return ApiResponse<bool>.Ok(true, "OTP sent successfully to your mobile number. Valid for 10 minutes.");
             }
@@ -483,39 +536,42 @@ namespace TiffinBox.Application.Services
         {
             try
             {
+                // Extract 10-digit phone number (handles +91, 91, or just 10 digits)
+                var phoneNumber10Digit = Extract10DigitPhoneNumber(request.PhoneNumber);
+
                 // Validate inputs
-                if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length != 10)
+                if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
                 if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
                     return ApiResponse<bool>.Fail("Please enter a valid 6-digit OTP");
 
-                // Get cached OTP
-                var cachedOtp = await _cacheService.GetAsync<string>($"mobile_otp:{request.PhoneNumber}");
+                // Get cached OTP (using 10-digit number as key)
+                var cachedOtp = await _cacheService.GetAsync<string>($"mobile_otp:{phoneNumber10Digit}");
 
                 if (cachedOtp == null)
                 {
-                    _logger.LogWarning("OTP expired for {PhoneNumber}", request.PhoneNumber);
+                    _logger.LogWarning("OTP expired for {PhoneNumber}", phoneNumber10Digit);
                     return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
                 }
 
                 if (cachedOtp != request.Otp)
                 {
                     _logger.LogWarning("Invalid OTP attempt for {PhoneNumber}. Expected: {Expected}, Got: {Actual}",
-                        request.PhoneNumber, cachedOtp, request.Otp);
+                        phoneNumber10Digit, cachedOtp, request.Otp);
                     return ApiResponse<bool>.Fail("Invalid OTP. Please enter the correct 6-digit OTP.");
                 }
 
-                // Find user by phone number
-                var user = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
+                // Find user by phone number (using 10-digit format for database lookup)
+                var user = await _unitOfWork.Users.GetByPhoneAsync(phoneNumber10Digit);
 
                 if (user == null)
                 {
                     // User doesn't exist - store verified phone for registration
-                    await _cacheService.SetAsync($"verified_phone:{request.PhoneNumber}", true, TimeSpan.FromMinutes(30));
-                    await _cacheService.RemoveAsync($"mobile_otp:{request.PhoneNumber}");
+                    await _cacheService.SetAsync($"verified_phone:{phoneNumber10Digit}", true, TimeSpan.FromMinutes(30));
+                    await _cacheService.RemoveAsync($"mobile_otp:{phoneNumber10Digit}");
 
-                    _logger.LogInformation("Phone number {PhoneNumber} verified for new registration", request.PhoneNumber);
+                    _logger.LogInformation("Phone number {PhoneNumber} verified for new registration", phoneNumber10Digit);
 
                     return ApiResponse<bool>.Ok(true, "Mobile number verified successfully! You can now complete your registration.");
                 }
@@ -525,9 +581,9 @@ namespace TiffinBox.Application.Services
                 await _unitOfWork.CompleteAsync();
 
                 // Remove OTP from cache after successful verification
-                await _cacheService.RemoveAsync($"mobile_otp:{request.PhoneNumber}");
+                await _cacheService.RemoveAsync($"mobile_otp:{phoneNumber10Digit}");
 
-                _logger.LogInformation("Mobile number {PhoneNumber} verified successfully for user {UserId}", request.PhoneNumber, user.Id);
+                _logger.LogInformation("Mobile number {PhoneNumber} verified successfully for user {UserId}", phoneNumber10Digit, user.Id);
 
                 return ApiResponse<bool>.Ok(true, "Mobile number verified successfully!");
             }
@@ -543,19 +599,25 @@ namespace TiffinBox.Application.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length != 10)
+                // Extract 10-digit phone number (handles +91, 91, or just 10 digits)
+                var phoneNumber10Digit = Extract10DigitPhoneNumber(request.PhoneNumber);
+
+                if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
                 // Generate new OTP
                 var otp = GenerateOtp();
 
-                // Store new OTP in cache (overwrites old one)
-                await _cacheService.SetAsync($"mobile_otp:{request.PhoneNumber}", otp, TimeSpan.FromMinutes(10));
+                // Store new OTP in cache (overwrites old one) - using 10-digit number as key
+                await _cacheService.SetAsync($"mobile_otp:{phoneNumber10Digit}", otp, TimeSpan.FromMinutes(10));
+
+                // Format full number for SMS (adds +91)
+                var fullPhoneNumber = FormatPhoneNumberForSms(phoneNumber10Digit);
 
                 // Send OTP via SMS
-                await _smsService.SendOtpVerificationAsync(request.PhoneNumber, otp);
+                await _smsService.SendOtpVerificationAsync(fullPhoneNumber, otp);
 
-                _logger.LogInformation("Mobile OTP resent to {PhoneNumber}", request.PhoneNumber);
+                _logger.LogInformation("Mobile OTP resent to {PhoneNumber}", phoneNumber10Digit);
 
                 return ApiResponse<bool>.Ok(true, "OTP resent successfully. Valid for 10 minutes.");
             }

@@ -62,9 +62,7 @@ namespace TiffinBox.Application.DTOs.Auth
     public class SendMobileOtpRequest
     {
         [Required(ErrorMessage = "Phone number is required")]
-        [Phone(ErrorMessage = "Invalid phone number format")]
-        [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be exactly 10 digits")]
-        [RegularExpression("^[0-9]{10}$", ErrorMessage = "Phone number must contain only digits")]
+        [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Please enter a valid international phone number (e.g., +917666163523)")]
         public string PhoneNumber { get; set; } = string.Empty;
     }
 
