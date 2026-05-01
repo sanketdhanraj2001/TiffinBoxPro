@@ -10,7 +10,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class MenuItem : BaseEntity
     {
-        public Guid VendorId { get; private set; }
+        public int VendorId { get; private set; }
         public virtual Vendor Vendor { get; private set; }
         public string Name { get; private set; }
         public string? Description { get; private set; }
@@ -31,7 +31,7 @@ namespace TiffinBox.Domain.Entities
         private MenuItem() { }
 
         public static MenuItem Create(
-            Guid vendorId,
+            int vendorId,
             string name,
             Money price,
             string category,

@@ -12,9 +12,9 @@ namespace TiffinBox.Domain.Entities
 {
     public class Order : BaseEntity
     {
-        public Guid SubscriptionId { get; private set; }
+        public int SubscriptionId { get; private set; }
         public virtual Subscription Subscription { get; private set; }
-        public Guid? DeliveryAgentId { get; private set; }
+        public int? DeliveryAgentId { get; private set; }
         public virtual DeliveryAgent? DeliveryAgent { get; private set; }
         public DateTime DeliveryDate { get; private set; }
         public OrderStatus Status { get; private set; }
@@ -33,7 +33,7 @@ namespace TiffinBox.Domain.Entities
 
         private Order() { }
 
-        public static Order Create(Guid subscriptionId, DateTime deliveryDate, Money totalAmount, string? instructions = null)
+        public static Order Create(int subscriptionId, DateTime deliveryDate, Money totalAmount, string? instructions = null)
         {
             return new Order
             {
@@ -65,7 +65,7 @@ namespace TiffinBox.Domain.Entities
             UpdateTimestamp();
         }
 
-        public void AssignDeliveryAgent(Guid agentId)
+        public void AssignDeliveryAgent(int agentId)
         {
             if (Status != OrderStatus.Preparing)
                 throw new BusinessRuleViolationException("Only preparing orders can be assigned for delivery");

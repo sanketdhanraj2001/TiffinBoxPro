@@ -8,10 +8,10 @@ namespace TiffinBox.Domain.ValueObjects
 {
     public class MealSelection
     {
-        public Guid MenuItemId { get; private set; }
+        public int MenuItemId { get; private set; }
         public List<DayOfWeek> DaysOfWeek { get; private set; }
 
-        public MealSelection(Guid menuItemId, List<DayOfWeek> daysOfWeek)
+        public MealSelection(int menuItemId, List<DayOfWeek> daysOfWeek)
         {
             MenuItemId = menuItemId;
             DaysOfWeek = daysOfWeek ?? new List<DayOfWeek>();

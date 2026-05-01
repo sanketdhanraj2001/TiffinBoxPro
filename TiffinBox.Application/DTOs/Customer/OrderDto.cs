@@ -8,7 +8,7 @@ namespace TiffinBox.Application.DTOs.Customer
 {
     public class OrderDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string VendorName { get; set; } = string.Empty;
         public DateTime DeliveryDate { get; set; }
         public string Status { get; set; } = string.Empty;

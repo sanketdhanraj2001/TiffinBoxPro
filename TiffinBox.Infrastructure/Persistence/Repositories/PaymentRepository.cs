@@ -20,7 +20,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
         public async Task<Payment?> GetByOrderIdAsync(string orderId)
             => await _dbSet.FirstOrDefaultAsync(p => p.OrderId == orderId);
 
-        public async Task<IReadOnlyList<Payment>> GetPaymentsBySubscriptionAsync(Guid subscriptionId)
+        public async Task<IReadOnlyList<Payment>> GetPaymentsBySubscriptionAsync(int subscriptionId)
             => await _dbSet.Where(p => p.SubscriptionId == subscriptionId).ToListAsync();
 
         public async Task<IReadOnlyList<Payment>> GetPaymentsByDateRangeAsync(DateTime from, DateTime to)

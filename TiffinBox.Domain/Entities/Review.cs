@@ -10,11 +10,11 @@ namespace TiffinBox.Domain.Entities
 {
     public class Review : BaseEntity
     {
-        public Guid CustomerId { get; private set; }
+        public int CustomerId { get; private set; }
         public virtual User Customer { get; private set; }
-        public Guid VendorId { get; private set; }
+        public int VendorId { get; private set; }
         public virtual Vendor Vendor { get; private set; }
-        public Guid? OrderId { get; private set; }
+        public int? OrderId { get; private set; }
         public virtual Order? Order { get; private set; }
         public int Rating { get; private set; }
         public string? Comment { get; private set; }
@@ -26,7 +26,7 @@ namespace TiffinBox.Domain.Entities
 
         private Review() { }
 
-        public static Review Create(Guid customerId, Guid vendorId, int rating, string? comment = null, Guid? orderId = null)
+        public static Review Create(int customerId, int vendorId, int rating, string? comment = null, int? orderId = null)
         {
             if (rating < 1 || rating > 5)
                 throw new BusinessRuleViolationException("Rating must be between 1 and 5");
@@ -85,12 +85,12 @@ namespace TiffinBox.Domain.Entities
             UpdateTimestamp();
         }
 
-        public bool IsCustomerReview(Guid customerId)
+        public bool IsCustomerReview(int customerId)
         {
             return CustomerId == customerId;
         }
 
-        public bool IsVendorReview(Guid vendorId)
+        public bool IsVendorReview(int vendorId)
         {
             return VendorId == vendorId;
         }

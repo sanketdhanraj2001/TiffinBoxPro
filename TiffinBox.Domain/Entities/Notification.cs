@@ -11,7 +11,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class Notification : BaseEntity
     {
-        public Guid UserId { get; private set; }
+        public int UserId { get; private set; }
         public virtual User User { get; private set; }
         public NotificationType Type { get; private set; }
         public string Title { get; private set; }
@@ -35,7 +35,7 @@ namespace TiffinBox.Domain.Entities
         private Notification() { }
 
         public static Notification Create(
-            Guid userId,
+            int userId,
             NotificationType type,
             string title,
             string message,

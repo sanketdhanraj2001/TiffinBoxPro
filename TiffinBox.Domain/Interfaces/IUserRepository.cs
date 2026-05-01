@@ -12,8 +12,8 @@ namespace TiffinBox.Domain.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByPhoneAsync(string phoneNumber);
         Task<User?> GetByRefreshTokenAsync(string refreshToken);
-        Task<User?> GetByIdWithDetailsAsync(Guid id);
+        Task<User?> GetByIdWithDetailsAsync(int id);
         Task<IReadOnlyList<User>> GetUsersByRoleAsync(string role, int page, int pageSize);
-        Task<bool> IsEmailUniqueAsync(string email, Guid? excludeUserId = null);
+        Task<bool> IsEmailUniqueAsync(string email, int? excludeUserId = null);
     }
 }

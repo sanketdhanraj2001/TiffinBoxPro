@@ -11,7 +11,7 @@ namespace TiffinBox.Domain.Interfaces
     {
         Task<Payment?> GetByTransactionIdAsync(string transactionId);
         Task<Payment?> GetByOrderIdAsync(string orderId);
-        Task<IReadOnlyList<Payment>> GetPaymentsBySubscriptionAsync(Guid subscriptionId);
+        Task<IReadOnlyList<Payment>> GetPaymentsBySubscriptionAsync(int subscriptionId);
         Task<IReadOnlyList<Payment>> GetPaymentsByDateRangeAsync(DateTime from, DateTime to);
         Task<decimal> GetTotalCollectedAsync(DateTime from, DateTime to);
     }

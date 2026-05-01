@@ -82,7 +82,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<PaginatedList<VendorListDto>>.Ok(paginatedList);
         }
 
-        public async Task<ApiResponse<VendorDetailDto>> GetVendorByIdAsync(Guid vendorId)
+        public async Task<ApiResponse<VendorDetailDto>> GetVendorByIdAsync(int vendorId)
         {
             var vendor = await _unitOfWork.Vendors.GetByIdWithDetailsAsync(vendorId);
 
@@ -259,7 +259,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<List<SubscriptionDto>>.Ok(dtos);
         }
 
-        public async Task<ApiResponse<bool>> CancelSubscriptionAsync(Guid subscriptionId, string reason)
+        public async Task<ApiResponse<bool>> CancelSubscriptionAsync(int subscriptionId, string reason)
         {
             var customerId = _currentUserService.GetCurrentUserId();
 
@@ -340,7 +340,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<PaginatedList<OrderDto>>.Ok(paginatedList);
         }
 
-        public async Task<ApiResponse<OrderDto>> TrackOrderAsync(Guid orderId)
+        public async Task<ApiResponse<OrderDto>> TrackOrderAsync(int orderId)
         {
             var customerId = _currentUserService.GetCurrentUserId();
 
@@ -375,7 +375,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<OrderDto>.Ok(dto);
         }
 
-        public async Task<ApiResponse<bool>> AddReviewAsync(Guid vendorId, int rating, string? comment)
+        public async Task<ApiResponse<bool>> AddReviewAsync(int vendorId, int rating, string? comment)
         {
             var customerId = _currentUserService.GetCurrentUserId();
 

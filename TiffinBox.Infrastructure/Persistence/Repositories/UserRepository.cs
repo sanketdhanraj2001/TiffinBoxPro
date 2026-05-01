@@ -21,7 +21,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .Include(u => u.Vendor)
                 .Include(u => u.DeliveryAgent)
                 .Include(u => u.Wallet)
-                .FirstOrDefaultAsync(u => u.Email == email.ToLowerInvariant());
+                .FirstOrDefaultAsync(u => u.Email == email.ToLowerInvariant() || u.UserName == email);
         }
 
         public async Task<User?> GetByPhoneAsync(string phoneNumber)
@@ -38,7 +38,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
         }
 
-        public async Task<User?> GetByIdWithDetailsAsync(Guid id)
+        public async Task<User?> GetByIdWithDetailsAsync(int id)
         {
             return await _dbSet
                 .Include(u => u.Vendor)
@@ -57,7 +57,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> IsEmailUniqueAsync(string email, Guid? excludeUserId = null)
+        public async Task<bool> IsEmailUniqueAsync(string email, int? excludeUserId = null)
         {
             var query = _dbSet.Where(u => u.Email == email.ToLowerInvariant());
 

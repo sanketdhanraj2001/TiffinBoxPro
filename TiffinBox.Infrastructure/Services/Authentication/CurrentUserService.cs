@@ -18,15 +18,14 @@ namespace TiffinBox.Infrastructure.Services.Authentication
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public Guid GetCurrentUserId()
+        public int GetCurrentUserId()
         {
-            var userIdClaim = _httpContextAccessor.HttpContext?.User?
-                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Guid.Empty;
+            if (!int.TryParse(userIdClaim, out var userId))
+                throw new Exception("Invalid or missing user id");
 
-            return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
+            return userId;
         }
 
         public string? GetUserRole()

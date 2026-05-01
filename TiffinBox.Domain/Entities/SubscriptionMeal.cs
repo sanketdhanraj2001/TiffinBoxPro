@@ -9,16 +9,16 @@ namespace TiffinBox.Domain.Entities
 {
     public class SubscriptionMeal : BaseEntity
     {
-        public Guid SubscriptionId { get; private set; }
+        public int SubscriptionId { get; private set; }
         public virtual Subscription Subscription { get; private set; }
-        public Guid MenuItemId { get; private set; }
+        public int MenuItemId { get; private set; }
         public virtual MenuItem MenuItem { get; private set; }
         public List<DayOfWeek> DaysOfWeek { get; private set; } = new();
         public bool IsActive { get; private set; }
 
         private SubscriptionMeal() { }
 
-        public static SubscriptionMeal Create(Guid subscriptionId, Guid menuItemId, List<DayOfWeek> daysOfWeek)
+        public static SubscriptionMeal Create(int subscriptionId, int menuItemId, List<DayOfWeek> daysOfWeek)
         {
             if (daysOfWeek == null || !daysOfWeek.Any())
                 throw new ArgumentException("At least one day of week must be selected");

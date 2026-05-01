@@ -15,7 +15,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
     {
         public OrderRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<IReadOnlyList<Order>> GetOrdersByCustomerAsync(Guid customerId, int page, int pageSize)
+        public async Task<IReadOnlyList<Order>> GetOrdersByCustomerAsync(int customerId, int page, int pageSize)
             => await _dbSet
                 .Include(o => o.Subscription).ThenInclude(s => s.Plan).ThenInclude(p => p.Vendor)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.MenuItem)
@@ -25,7 +25,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-        public async Task<IReadOnlyList<Order>> GetOrdersByVendorAsync(Guid vendorId, OrderStatus? status, DateTime? fromDate, DateTime? toDate)
+        public async Task<IReadOnlyList<Order>> GetOrdersByVendorAsync(int vendorId, OrderStatus? status, DateTime? fromDate, DateTime? toDate)
         {
             var query = _dbSet.Include(o => o.OrderItems).Where(o => o.Subscription.VendorId == vendorId);
             if (status.HasValue) query = query.Where(o => o.Status == status.Value);
@@ -34,14 +34,14 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
             return await query.OrderByDescending(o => o.DeliveryDate).ToListAsync();
         }
 
-        public async Task<IReadOnlyList<Order>> GetOrdersByDeliveryAgentAsync(Guid agentId, OrderStatus? status)
+        public async Task<IReadOnlyList<Order>> GetOrdersByDeliveryAgentAsync(int agentId, OrderStatus? status)
         {
             var query = _dbSet.Where(o => o.DeliveryAgentId == agentId);
             if (status.HasValue) query = query.Where(o => o.Status == status.Value);
             return await query.OrderBy(o => o.DeliveryDate).ToListAsync();
         }
 
-        public async Task<Order?> GetOrderWithTrackingAsync(Guid orderId)
+        public async Task<Order?> GetOrderWithTrackingAsync(int orderId)
             => await _dbSet
                 .Include(o => o.Subscription).ThenInclude(s => s.Plan).ThenInclude(p => p.Vendor)
                 .Include(o => o.OrderItems).ThenInclude(oi => oi.MenuItem)
@@ -54,13 +54,13 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .Where(o => o.DeliveryDate == date && o.Status == OrderStatus.Pending)
                 .ToListAsync();
 
-        public async Task<bool> HasCustomerOrderedFromVendorAsync(Guid customerId, Guid vendorId)
+        public async Task<bool> HasCustomerOrderedFromVendorAsync(int customerId, int vendorId)
             => await _dbSet
                 .AnyAsync(o => o.Subscription.CustomerId == customerId
                     && o.Subscription.VendorId == vendorId
                     && o.Status == OrderStatus.Delivered);
 
-        public async Task<decimal> GetVendorRevenueAsync(Guid vendorId, DateTime fromDate, DateTime toDate)
+        public async Task<decimal> GetVendorRevenueAsync(int vendorId, DateTime fromDate, DateTime toDate)
             => await _dbSet
                 .Where(o => o.Subscription.VendorId == vendorId
                     && o.DeliveryDate >= fromDate

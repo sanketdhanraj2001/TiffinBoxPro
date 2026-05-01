@@ -8,7 +8,7 @@ namespace TiffinBox.Application.DTOs.Customer
 {
     public class VendorListDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string BusinessName { get; set; } = string.Empty;
         public string? LogoUrl { get; set; }
         public string? Description { get; set; }

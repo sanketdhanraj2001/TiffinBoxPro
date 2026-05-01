@@ -13,10 +13,10 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
     {
         public WalletRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<Wallet?> GetByUserIdAsync(Guid userId)
+        public async Task<Wallet?> GetByUserIdAsync(int userId)
             => await _dbSet.FirstOrDefaultAsync(w => w.UserId == userId);
 
-        public async Task<Wallet?> GetByUserIdWithTransactionsAsync(Guid userId, int? limit = null)
+        public async Task<Wallet?> GetByUserIdWithTransactionsAsync(int userId, int? limit = null)
         {
             var query = _dbSet.Include(w => w.Transactions).Where(w => w.UserId == userId);
             if (limit.HasValue)
@@ -24,7 +24,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<IReadOnlyList<WalletTransaction>> GetTransactionsAsync(Guid walletId, DateTime? from, DateTime? to, int page, int pageSize)
+        public async Task<IReadOnlyList<WalletTransaction>> GetTransactionsAsync(int walletId, DateTime? from, DateTime? to, int page, int pageSize)
         {
             var query = _context.Set<WalletTransaction>().Where(t => t.WalletId == walletId);
             if (from.HasValue) query = query.Where(t => t.CreatedAt >= from.Value);
@@ -33,13 +33,13 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
 
-        public async Task<decimal> GetBalanceAsync(Guid userId)
+        public async Task<decimal> GetBalanceAsync(int userId)
         {
             var wallet = await GetByUserIdAsync(userId);
             return wallet?.Balance.Amount ?? 0;
         }
 
-        public async Task<bool> CreditAsync(Guid walletId, decimal amount, string description, string? referenceId = null)
+        public async Task<bool> CreditAsync(int walletId, decimal amount, string description, string? referenceId = null)
         {
             var wallet = await GetByIdAsync(walletId);
             if (wallet == null) return false;
@@ -48,7 +48,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<bool> DebitAsync(Guid walletId, decimal amount, string description, string? referenceId = null)
+        public async Task<bool> DebitAsync(int walletId, decimal amount, string description, string? referenceId = null)
         {
             var wallet = await GetByIdAsync(walletId);
             if (wallet == null) return false;

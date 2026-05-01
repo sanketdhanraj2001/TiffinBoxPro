@@ -10,9 +10,9 @@ namespace TiffinBox.Domain.Entities
 {
     public class OrderItem : BaseEntity
     {
-        public Guid OrderId { get; private set; }
+        public int OrderId { get; private set; }
         public virtual Order Order { get; private set; }
-        public Guid MenuItemId { get; private set; }
+        public int MenuItemId { get; private set; }
         public virtual MenuItem MenuItem { get; private set; }
         public int Quantity { get; private set; }
         public Money UnitPrice { get; private set; }
@@ -21,7 +21,7 @@ namespace TiffinBox.Domain.Entities
 
         private OrderItem() { }
 
-        public static OrderItem Create(Guid orderId, Guid menuItemId, int quantity, Money unitPrice, string? instructions = null)
+        public static OrderItem Create(int orderId, int menuItemId, int quantity, Money unitPrice, string? instructions = null)
         {
             if (quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than zero");

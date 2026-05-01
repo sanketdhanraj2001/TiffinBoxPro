@@ -24,9 +24,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.DeliveryAgent", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -51,10 +53,6 @@ namespace TiffinBox.Infrastructure.Migrations
                         .HasColumnType("float")
                         .HasDefaultValue(0.0);
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<int>("TotalDeliveries")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -68,8 +66,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("VehicleNumber")
                         .HasMaxLength(50)
@@ -79,8 +77,8 @@ namespace TiffinBox.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -100,9 +98,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.MenuItem", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("Calories")
                         .HasColumnType("int");
@@ -151,10 +151,6 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<double>("Rating")
                         .HasColumnType("float");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<int?>("StockQuantity")
                         .HasColumnType("int");
 
@@ -164,8 +160,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -178,9 +174,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Notification", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ActionUrl")
                         .HasColumnType("nvarchar(max)");
@@ -219,10 +217,6 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<int>("RetryCount")
                         .HasColumnType("int");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<DateTime?>("SentAt")
                         .HasColumnType("datetime2");
 
@@ -236,8 +230,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -248,9 +242,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Order", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CancellationReason")
                         .HasColumnType("nvarchar(max)");
@@ -267,8 +263,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("DeliveredAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("DeliveryAgentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("DeliveryAgentId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DeliveryDate")
                         .HasColumnType("datetime2");
@@ -285,15 +281,11 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("PreparedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
 
                     b.Property<int>("TotalAmountId")
                         .HasColumnType("int");
@@ -304,8 +296,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("VendorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("VendorId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -322,9 +314,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.OrderItem", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -332,18 +326,14 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("MenuItemId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("SpecialInstructions")
                         .HasMaxLength(500)
@@ -368,9 +358,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Payment", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AmountId")
                         .HasColumnType("int");
@@ -397,14 +389,11 @@ namespace TiffinBox.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("RefundAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RefundId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("Signature")
                         .HasColumnType("nvarchar(max)");
@@ -412,8 +401,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
 
                     b.Property<string>("TransactionId")
                         .HasColumnType("nvarchar(max)");
@@ -432,9 +421,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Review", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Comment")
                         .HasMaxLength(1000)
@@ -443,8 +434,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Images")
                         .HasColumnType("nvarchar(max)");
@@ -458,8 +449,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -471,15 +462,11 @@ namespace TiffinBox.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -500,9 +487,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Subscription", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CancellationReason")
                         .HasMaxLength(500)
@@ -514,8 +503,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
 
                     b.Property<int>("DeliveredDays")
                         .ValueGeneratedOnAdd()
@@ -528,12 +517,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("PlanId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
 
                     b.Property<int>("SkippedDays")
                         .ValueGeneratedOnAdd()
@@ -558,8 +543,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -582,9 +567,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.SubscriptionMeal", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -599,15 +586,11 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("MenuItemId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("int");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -623,9 +606,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.SubscriptionPlan", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -674,15 +659,11 @@ namespace TiffinBox.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -697,9 +678,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.User", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("AddressId")
                         .HasColumnType("int");
@@ -760,10 +743,6 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -780,9 +759,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Vendor", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("ApprovedAt")
                         .HasColumnType("datetime2");
@@ -854,10 +835,6 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<double>("Rating")
                         .HasColumnType("float");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<string>("ServiceAreas")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -868,8 +845,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -889,9 +866,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.Wallet", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Balance")
                         .HasPrecision(18, 2)
@@ -908,15 +887,11 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -928,9 +903,11 @@ namespace TiffinBox.Infrastructure.Migrations
 
             modelBuilder.Entity("TiffinBox.Domain.Entities.WalletTransaction", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
@@ -955,10 +932,6 @@ namespace TiffinBox.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -968,8 +941,8 @@ namespace TiffinBox.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("WalletId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("WalletId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1048,6 +1021,7 @@ namespace TiffinBox.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Currency")

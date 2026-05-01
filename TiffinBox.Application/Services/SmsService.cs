@@ -62,7 +62,7 @@ namespace TiffinBox.Application.Services
             }
         }
 
-        // ✅ 2Factor SMS OTP - uses approved template
+        //  2Factor SMS OTP - uses approved template
         private async Task SendVia2Factor(string phoneNumber)
         {
             try
@@ -142,10 +142,44 @@ namespace TiffinBox.Application.Services
                 return false;
             }
         }
-
-        public async Task SendOtpVerificationAsync(string phoneNumber, string otp)
+        //  Return sessionId instead of void
+        public async Task<string> SendOtpVerificationAsync(string phoneNumber, string otp)
         {
-            await SendSmsAsync(phoneNumber, null);
+            try
+            {
+                var formattedNumber = FormatPhoneNumberFor2Factor(phoneNumber);
+                var templateName = "TiffinBox Pro";
+
+                var url = $"https://2factor.in/API/V1/{_smsSettings.ApiKey}/SMS/{formattedNumber}/AUTOGEN/{templateName}";
+
+                _logger.LogInformation("2Factor Request URL: {Url}", url.Replace(_smsSettings.ApiKey, "***HIDDEN***"));
+
+                var response = await _httpClient.GetAsync(url);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation("2Factor Response: {Response}", responseBody);
+
+                using var doc = JsonDocument.Parse(responseBody);
+                var root = doc.RootElement;
+                var status = root.GetProperty("Status").GetString();
+
+                if (status != "Success")
+                {
+                    var details = root.GetProperty("Details").GetString();
+                    _logger.LogError("2Factor API Error: {Details}", details);
+                    return null;
+                }
+
+                var sessionId = root.GetProperty("Details").GetString();
+                _logger.LogInformation("2Factor - OTP sent successfully. SessionId: {SessionId}", sessionId);
+
+                return sessionId;  // ✅ Return sessionId
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "2Factor - Failed to send SMS to {PhoneNumber}", phoneNumber);
+                return null;
+            }
         }
 
         public async Task SendOtpAsync(string phoneNumber, string otp)

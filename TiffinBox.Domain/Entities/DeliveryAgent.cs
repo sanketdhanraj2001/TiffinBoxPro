@@ -10,9 +10,9 @@ namespace TiffinBox.Domain.Entities
 {
     public class DeliveryAgent : BaseEntity
     {
-        public Guid UserId { get; private set; }
+        public int UserId { get; private set; }
         public virtual User User { get; private set; }
-        public Guid VendorId { get; private set; }
+        public int VendorId { get; private set; }
         public virtual Vendor Vendor { get; private set; }
         public string? VehicleNumber { get; private set; }
         public string? VehicleType { get; private set; }
@@ -28,7 +28,7 @@ namespace TiffinBox.Domain.Entities
 
         private DeliveryAgent() { }
 
-        public static DeliveryAgent Create(User user, Guid vendorId, string? vehicleNumber = null, string? vehicleType = null)
+        public static DeliveryAgent Create(User user, int vendorId, string? vehicleNumber = null, string? vehicleType = null)
         {
             return new DeliveryAgent
             {

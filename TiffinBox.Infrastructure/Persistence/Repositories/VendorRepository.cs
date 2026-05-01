@@ -14,7 +14,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
     {
         public VendorRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<Vendor?> GetByIdWithDetailsAsync(Guid id)
+        public async Task<Vendor?> GetByIdWithDetailsAsync(int id)
             => await _dbSet
                 .Include(v => v.User)
                 .Include(v => v.MenuItems)
@@ -38,7 +38,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .Where(v => v.BusinessAddress.City.Contains(area) && v.IsApproved)
                 .ToListAsync();
 
-        public async Task<bool> IsGSTINUniqueAsync(string gstin, Guid? excludeVendorId = null)
+        public async Task<bool> IsGSTINUniqueAsync(string gstin, int? excludeVendorId = null)
         {
             var query = _dbSet.Where(v => v.GSTIN == gstin);
             if (excludeVendorId.HasValue)
@@ -46,7 +46,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
             return !await query.AnyAsync();
         }
 
-        public async Task UpdateRatingAsync(Guid vendorId, int newRating)
+        public async Task UpdateRatingAsync(int vendorId, int newRating)
         {
             var vendor = await GetByIdAsync(vendorId);
             if (vendor != null)

@@ -7,9 +7,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TiffinBox.Domain.Common;
 using TiffinBox.Domain.Entities;
+using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Infrastructure.Persistence
 {
@@ -37,6 +39,8 @@ namespace TiffinBox.Infrastructure.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder); // ✔ call base first
+
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
             // Global query filter for soft delete
@@ -45,14 +49,41 @@ namespace TiffinBox.Infrastructure.Persistence
                 if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
                 {
                     var parameter = Expression.Parameter(entityType.ClrType, "e");
-                    var property = Expression.Property(parameter, "IsDeleted");
+                    var property = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
                     var condition = Expression.Equal(property, Expression.Constant(false));
                     var lambda = Expression.Lambda(condition, parameter);
+
                     entityType.SetQueryFilter(lambda);
                 }
             }
 
-            base.OnModelCreating(modelBuilder);
+            // Shared empty list (better performance + safe)
+            var emptyList = new List<string>();
+
+            modelBuilder.Entity<Review>()
+                .Property(r => r.Images)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v ?? emptyList, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? emptyList
+                )
+                .Metadata.SetValueComparer(new ValueComparer<List<string>>(
+                    (c1, c2) =>
+                        (c1 ?? emptyList).SequenceEqual(c2 ?? emptyList),
+
+                    c => (c ?? emptyList)
+                        .Aggregate(0, (a, v) => HashCode.Combine(a, v != null ? v.GetHashCode() : 0)),
+
+                    c => (c ?? emptyList).ToList()
+                ));
+
+            // FIX decimal warnings (IMPORTANT)
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.RefundAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Money>()
+                .Property(m => m.Amount)
+                .HasPrecision(18, 2);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

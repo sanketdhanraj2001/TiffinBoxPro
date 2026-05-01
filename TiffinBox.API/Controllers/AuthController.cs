@@ -72,7 +72,7 @@ namespace TiffinBox.API.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _authService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
             return result.Success ? Ok(result) : BadRequest(result);
         }
@@ -81,7 +81,7 @@ namespace TiffinBox.API.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _authService.GetCurrentUserAsync(userId);
             return Ok(result);
         }
@@ -90,7 +90,7 @@ namespace TiffinBox.API.Controllers
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _authService.UpdateProfileAsync(userId, request);
             return result.Success ? Ok(result) : BadRequest(result);
         }
@@ -99,7 +99,7 @@ namespace TiffinBox.API.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? Guid.Empty.ToString());
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _authService.LogoutAsync(userId);
             return Ok(result);
         }

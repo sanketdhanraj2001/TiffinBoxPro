@@ -11,13 +11,13 @@ namespace TiffinBox.Domain.Interfaces
 {
     public interface IOrderRepository : IRepository<Order>
     {
-        Task<IReadOnlyList<Order>> GetOrdersByCustomerAsync(Guid customerId, int page, int pageSize);
-        Task<IReadOnlyList<Order>> GetOrdersByVendorAsync(Guid vendorId, OrderStatus? status, DateTime? fromDate, DateTime? toDate);
-        Task<IReadOnlyList<Order>> GetOrdersByDeliveryAgentAsync(Guid agentId, OrderStatus? status);
-        Task<Order?> GetOrderWithTrackingAsync(Guid orderId);
+        Task<IReadOnlyList<Order>> GetOrdersByCustomerAsync(int customerId, int page, int pageSize);
+        Task<IReadOnlyList<Order>> GetOrdersByVendorAsync(int vendorId, OrderStatus? status, DateTime? fromDate, DateTime? toDate);
+        Task<IReadOnlyList<Order>> GetOrdersByDeliveryAgentAsync(int agentId, OrderStatus? status);
+        Task<Order?> GetOrderWithTrackingAsync(int orderId);
         Task<IReadOnlyList<Order>> GetPendingOrdersForDateAsync(DateTime date);
-        Task<bool> HasCustomerOrderedFromVendorAsync(Guid customerId, Guid vendorId);
-        Task<decimal> GetVendorRevenueAsync(Guid vendorId, DateTime fromDate, DateTime toDate);
+        Task<bool> HasCustomerOrderedFromVendorAsync(int customerId, int vendorId);
+        Task<decimal> GetVendorRevenueAsync(int vendorId, DateTime fromDate, DateTime toDate);
         Task<IReadOnlyList<Order>> GetFilteredAsync(OrderSpecification spec);
         Task<int> CountFilteredAsync(OrderSpecification spec);
 

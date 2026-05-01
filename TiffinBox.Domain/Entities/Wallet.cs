@@ -10,7 +10,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class Wallet : BaseEntity
     {
-        public Guid UserId { get; private set; }
+        public int UserId { get; private set; }
         public virtual User User { get; private set; }
         public Money Balance { get; private set; }
         public bool IsActive { get; private set; }
@@ -18,7 +18,7 @@ namespace TiffinBox.Domain.Entities
 
         private Wallet() { }
 
-        public static Wallet Create(Guid userId)
+        public static Wallet Create(int userId)
         {
             return new Wallet
             {

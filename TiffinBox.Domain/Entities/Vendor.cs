@@ -11,7 +11,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class Vendor : BaseEntity
     {
-        public Guid UserId { get; private set; }
+        public int UserId { get; private set; }
         public virtual User User { get; private set; }
         public string BusinessName { get; private set; }
         public string? GSTIN { get; private set; }
@@ -36,16 +36,16 @@ namespace TiffinBox.Domain.Entities
         public List<string> ServiceAreas { get; private set; } = new();
 
 
-        // ✅ FIXED: Changed from string? to ICollection<Review>
+        //  FIXED: Changed from string? to ICollection<Review>
         public virtual ICollection<Review> Reviews { get; private set; } = new List<Review>();
-        // ✅ ADDED: Cuisine type (e.g., North Indian, Chinese, Italian)
+        //  ADDED: Cuisine type (e.g., North Indian, Chinese, Italian)
         public string? Cuisine { get; private set; }
 
-        // ✅ ADDED: Delivery fee and minimum order amount
+        // ADDED: Delivery fee and minimum order amount
         public Money? DeliveryFee { get; private set; }
         public Money? MinOrderAmount { get; private set; }
 
-        // ✅ ADDED: Estimated delivery time in minutes
+        // ADDED: Estimated delivery time in minutes
         public int EstimatedDeliveryTime { get; private set; } = 30;
 
 

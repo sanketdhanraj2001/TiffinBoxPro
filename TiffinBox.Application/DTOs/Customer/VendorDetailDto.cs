@@ -8,7 +8,7 @@ namespace TiffinBox.Application.DTOs.Customer
 {
     public class VendorDetailDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string BusinessName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? LogoUrl { get; set; }
@@ -29,7 +29,7 @@ namespace TiffinBox.Application.DTOs.Customer
 
     public class MenuItemDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public decimal Price { get; set; }
@@ -41,7 +41,7 @@ namespace TiffinBox.Application.DTOs.Customer
 
     public class PlanDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string PlanType { get; set; } = string.Empty;
@@ -52,7 +52,7 @@ namespace TiffinBox.Application.DTOs.Customer
 
     public class ReviewDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string UserName { get; set; } = string.Empty;
         public int Rating { get; set; }
         public string? Comment { get; set; }

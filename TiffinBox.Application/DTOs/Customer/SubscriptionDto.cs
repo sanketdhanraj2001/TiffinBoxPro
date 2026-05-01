@@ -8,8 +8,8 @@ namespace TiffinBox.Application.DTOs.Customer
 {
     public class SubscriptionDto
     {
-        public Guid Id { get; set; }
-        public Guid VendorId { get; set; }
+        public int Id { get; set; }
+        public int VendorId { get; set; }
         public string VendorName { get; set; } = string.Empty;
         public string PlanName { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }

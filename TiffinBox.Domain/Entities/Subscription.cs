@@ -12,11 +12,11 @@ namespace TiffinBox.Domain.Entities
 {
     public class Subscription : BaseEntity
     {
-        public Guid CustomerId { get; private set; }
+        public int CustomerId { get; private set; }
         public virtual User Customer { get; private set; }
-        public Guid VendorId { get; private set; }
+        public int VendorId { get; private set; }
         public virtual Vendor Vendor { get; private set; }  
-        public Guid PlanId { get; private set; }
+        public int PlanId { get; private set; }
         public SubscriptionPlan Plan { get; private set; }
         public DateTime StartDate { get; private set; }
         public DateTime EndDate { get; private set; }
@@ -34,7 +34,7 @@ namespace TiffinBox.Domain.Entities
         private Subscription() { }
 
         public static Subscription Create(
-            Guid customerId,
+            int customerId,
             SubscriptionPlan plan,
             DateTime startDate,
             List<MealSelection> mealSelections)

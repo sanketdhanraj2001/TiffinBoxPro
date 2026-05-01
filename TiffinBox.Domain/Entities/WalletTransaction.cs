@@ -13,7 +13,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class WalletTransaction : BaseEntity
     {
-        public Guid WalletId { get; private set; }
+        public int WalletId { get; private set; }
         public virtual Wallet Wallet { get; private set; }
         public TransactionType Type { get; private set; }
         public Money Amount { get; private set; }
@@ -24,8 +24,8 @@ namespace TiffinBox.Domain.Entities
 
         private WalletTransaction() { }
 
-        // ✅ CreateCredit with 4 parameters (no BalanceAfter)
-        public static WalletTransaction CreateCredit(Guid walletId, Money amount, string description, string? referenceId = null)
+        //  CreateCredit with 4 parameters (no BalanceAfter)
+        public static WalletTransaction CreateCredit(int walletId, Money amount, string description, string? referenceId = null)
         {
             return new WalletTransaction
             {
@@ -38,8 +38,8 @@ namespace TiffinBox.Domain.Entities
             };
         }
 
-        // ✅ CreateCredit with 5 parameters (includes BalanceAfter)
-        public static WalletTransaction CreateCredit(Guid walletId, Money amount, string description, string? referenceId, decimal balanceAfter)
+        //  CreateCredit with 5 parameters (includes BalanceAfter)
+        public static WalletTransaction CreateCredit(int walletId, Money amount, string description, string? referenceId, decimal balanceAfter)
         {
             return new WalletTransaction
             {
@@ -53,8 +53,8 @@ namespace TiffinBox.Domain.Entities
             };
         }
 
-        // ✅ CreateDebit with 4 parameters (no BalanceAfter)
-        public static WalletTransaction CreateDebit(Guid walletId, Money amount, string description, string? referenceId = null)
+        // CreateDebit with 4 parameters (no BalanceAfter)
+        public static WalletTransaction CreateDebit(int walletId, Money amount, string description, string? referenceId = null)
         {
             return new WalletTransaction
             {
@@ -67,8 +67,8 @@ namespace TiffinBox.Domain.Entities
             };
         }
 
-        // ✅ CreateDebit with 5 parameters (includes BalanceAfter)
-        public static WalletTransaction CreateDebit(Guid walletId, Money amount, string description, string? referenceId, decimal balanceAfter)
+        //  CreateDebit with 5 parameters (includes BalanceAfter)
+        public static WalletTransaction CreateDebit(int walletId, Money amount, string description, string? referenceId, decimal balanceAfter)
         {
             return new WalletTransaction
             {

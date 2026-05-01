@@ -28,7 +28,7 @@ namespace TiffinBox.Application.Services
 
         // ==================== Subscription Notifications ====================
 
-        public async Task SendSubscriptionCreatedAsync(Guid customerId, Guid subscriptionId)
+        public async Task SendSubscriptionCreatedAsync(int customerId, int subscriptionId)
         {
             _logger.LogInformation("📧 Subscription created notification sent to customer {CustomerId} for subscription {SubscriptionId}",
                 customerId, subscriptionId);
@@ -37,28 +37,28 @@ namespace TiffinBox.Application.Services
             await Task.CompletedTask;
         }
 
-        public async Task SendSubscriptionCancelledAsync(Guid customerId, Guid subscriptionId)
+        public async Task SendSubscriptionCancelledAsync(int customerId, int subscriptionId)
         {
             _logger.LogInformation("📧 Subscription cancelled notification sent to customer {CustomerId} for subscription {SubscriptionId}",
                 customerId, subscriptionId);
             await Task.CompletedTask;
         }
 
-        public async Task SendSubscriptionPausedAsync(Guid customerId, Guid subscriptionId)
+        public async Task SendSubscriptionPausedAsync(int customerId, int subscriptionId)
         {
             _logger.LogInformation("📧 Subscription paused notification sent to customer {CustomerId} for subscription {SubscriptionId}",
                 customerId, subscriptionId);
             await Task.CompletedTask;
         }
 
-        public async Task SendSubscriptionResumedAsync(Guid customerId, Guid subscriptionId)
+        public async Task SendSubscriptionResumedAsync(int customerId, int subscriptionId)
         {
             _logger.LogInformation("📧 Subscription resumed notification sent to customer {CustomerId} for subscription {SubscriptionId}",
                 customerId, subscriptionId);
             await Task.CompletedTask;
         }
 
-        public async Task SendSubscriptionExpiringAsync(Guid customerId, Guid subscriptionId, int daysLeft)
+        public async Task SendSubscriptionExpiringAsync(int customerId, int subscriptionId, int daysLeft)
         {
             _logger.LogInformation("📧 Subscription expiring notification sent to customer {CustomerId} for subscription {SubscriptionId}. Days left: {DaysLeft}",
                 customerId, subscriptionId, daysLeft);
@@ -67,42 +67,42 @@ namespace TiffinBox.Application.Services
 
         // ==================== Order Notifications ====================
 
-        public async Task SendOrderPlacedAsync(Guid customerId, Guid orderId)
+        public async Task SendOrderPlacedAsync(int customerId, int orderId)
         {
             _logger.LogInformation("📧 Order placed notification sent to customer {CustomerId} for order {OrderId}",
                 customerId, orderId);
             await Task.CompletedTask;
         }
 
-        public async Task SendOrderConfirmedAsync(Guid customerId, Guid orderId)
+        public async Task SendOrderConfirmedAsync(int customerId, int orderId)
         {
             _logger.LogInformation("📧 Order confirmed notification sent to customer {CustomerId} for order {OrderId}",
                 customerId, orderId);
             await Task.CompletedTask;
         }
 
-        public async Task SendOrderPreparingAsync(Guid customerId, Guid orderId)
+        public async Task SendOrderPreparingAsync(int customerId, int orderId)
         {
             _logger.LogInformation("📧 Order preparing notification sent to customer {CustomerId} for order {OrderId}",
                 customerId, orderId);
             await Task.CompletedTask;
         }
 
-        public async Task SendOrderOutForDeliveryAsync(Guid customerId, Guid orderId, string? deliveryAgentName = null)
+        public async Task SendOrderOutForDeliveryAsync(int customerId, int orderId, string? deliveryAgentName = null)
         {
             _logger.LogInformation("📧 Order out for delivery notification sent to customer {CustomerId} for order {OrderId}. Delivery Agent: {AgentName}",
                 customerId, orderId, deliveryAgentName ?? "Not assigned");
             await Task.CompletedTask;
         }
 
-        public async Task SendOrderDeliveredAsync(Guid customerId, Guid orderId)
+        public async Task SendOrderDeliveredAsync(int customerId, int orderId)
         {
             _logger.LogInformation("📧 Order delivered notification sent to customer {CustomerId} for order {OrderId}",
                 customerId, orderId);
             await Task.CompletedTask;
         }
 
-        public async Task SendOrderCancelledAsync(Guid customerId, Guid orderId, string reason)
+        public async Task SendOrderCancelledAsync(int customerId, int orderId, string reason)
         {
             _logger.LogInformation("📧 Order cancelled notification sent to customer {CustomerId} for order {OrderId}. Reason: {Reason}",
                 customerId, orderId, reason);
@@ -111,21 +111,21 @@ namespace TiffinBox.Application.Services
 
         // ==================== Payment Notifications ====================
 
-        public async Task SendPaymentSuccessAsync(Guid customerId, string paymentId, decimal amount)
+        public async Task SendPaymentSuccessAsync(int customerId, string paymentId, decimal amount)
         {
             _logger.LogInformation("💰 Payment success notification sent to customer {CustomerId} for payment {PaymentId}. Amount: {Amount}",
                 customerId, paymentId, amount);
             await Task.CompletedTask;
         }
 
-        public async Task SendPaymentFailedAsync(Guid customerId, string paymentId, string errorMessage)
+        public async Task SendPaymentFailedAsync(int customerId, string paymentId, string errorMessage)
         {
             _logger.LogError("❌ Payment failed notification sent to customer {CustomerId} for payment {PaymentId}. Error: {ErrorMessage}",
                 customerId, paymentId, errorMessage);
             await Task.CompletedTask;
         }
 
-        public async Task SendPaymentRefundedAsync(Guid customerId, string paymentId, decimal amount)
+        public async Task SendPaymentRefundedAsync(int customerId, string paymentId, decimal amount)
         {
             _logger.LogInformation("💰 Payment refunded notification sent to customer {CustomerId} for payment {PaymentId}. Amount: {Amount}",
                 customerId, paymentId, amount);
@@ -134,21 +134,21 @@ namespace TiffinBox.Application.Services
 
         // ==================== Wallet Notifications ====================
 
-        public async Task SendWalletCreditedAsync(Guid customerId, decimal amount, string description)
+        public async Task SendWalletCreditedAsync(int customerId, decimal amount, string description)
         {
             _logger.LogInformation("💰 Wallet credited notification sent to customer {CustomerId}. Amount: {Amount}, Description: {Description}",
                 customerId, amount, description);
             await Task.CompletedTask;
         }
 
-        public async Task SendWalletDebitedAsync(Guid customerId, decimal amount, string description)
+        public async Task SendWalletDebitedAsync(int customerId, decimal amount, string description)
         {
             _logger.LogInformation("💰 Wallet debited notification sent to customer {CustomerId}. Amount: {Amount}, Description: {Description}",
                 customerId, amount, description);
             await Task.CompletedTask;
         }
 
-        public async Task SendWalletLowBalanceAsync(Guid customerId, decimal balance)
+        public async Task SendWalletLowBalanceAsync(int customerId, decimal balance)
         {
             _logger.LogWarning("⚠️ Low wallet balance notification sent to customer {CustomerId}. Current Balance: {Balance}",
                 customerId, balance);
@@ -157,14 +157,14 @@ namespace TiffinBox.Application.Services
 
         // ==================== Vendor Related Notifications ====================
 
-        public async Task SendNewOrderToVendorAsync(Guid vendorId, Guid orderId)
+        public async Task SendNewOrderToVendorAsync(int vendorId, int orderId)
         {
             _logger.LogInformation("📦 New order notification sent to vendor {VendorId} for order {OrderId}",
                 vendorId, orderId);
             await Task.CompletedTask;
         }
 
-        public async Task SendOrderStatusUpdateToVendorAsync(Guid vendorId, Guid orderId, string status)
+        public async Task SendOrderStatusUpdateToVendorAsync(int vendorId, int orderId, string status)
         {
             _logger.LogInformation("📦 Order status update sent to vendor {VendorId} for order {OrderId}. Status: {Status}",
                 vendorId, orderId, status);
@@ -173,14 +173,14 @@ namespace TiffinBox.Application.Services
 
         // ==================== Delivery Agent Notifications ====================
 
-        public async Task SendNewOrderToDeliveryAgentAsync(Guid agentId, Guid orderId)
+        public async Task SendNewOrderToDeliveryAgentAsync(int agentId, int orderId)
         {
             _logger.LogInformation("🛵 New delivery assignment notification sent to agent {AgentId} for order {OrderId}",
                 agentId, orderId);
             await Task.CompletedTask;
         }
 
-        public async Task SendDeliveryAssignmentAsync(Guid agentId, Guid orderId)
+        public async Task SendDeliveryAssignmentAsync(int agentId, int orderId)
         {
             _logger.LogInformation("🛵 Delivery assignment notification sent to agent {AgentId} for order {OrderId}",
                 agentId, orderId);
@@ -189,7 +189,7 @@ namespace TiffinBox.Application.Services
 
         // ==================== General Notifications ====================
 
-        public async Task SendWelcomeEmailAsync(Guid userId, string email)
+        public async Task SendWelcomeEmailAsync(int userId, string email)
         {
             _logger.LogInformation("📧 Welcome email sent to {Email} (User: {UserId})", email, userId);
 
@@ -233,7 +233,7 @@ namespace TiffinBox.Application.Services
             }
         }
 
-        public async Task SendPushNotificationAsync(Guid userId, string title, string body, Dictionary<string, string>? data = null)
+        public async Task SendPushNotificationAsync(int userId, string title, string body, Dictionary<string, string>? data = null)
         {
             _logger.LogInformation("🔔 Push notification sent to user {UserId}. Title: {Title}, Body: {Body}",
                 userId, title, body);

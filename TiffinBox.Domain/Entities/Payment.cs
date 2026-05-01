@@ -11,7 +11,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class Payment : BaseEntity
     {
-        public Guid SubscriptionId { get; private set; }
+        public int SubscriptionId { get; private set; }
         public virtual Subscription Subscription { get; private set; }
         public Money Amount { get; private set; }
         public PaymentGateway Gateway { get; private set; }
@@ -27,7 +27,7 @@ namespace TiffinBox.Domain.Entities
 
         private Payment() { }
 
-        public static Payment Create(Guid subscriptionId, Money amount, PaymentGateway gateway, string orderId, PaymentStatus status = PaymentStatus.Pending)
+        public static Payment Create(int subscriptionId, Money amount, PaymentGateway gateway, string orderId, PaymentStatus status = PaymentStatus.Pending)
         {
             return new Payment
             {

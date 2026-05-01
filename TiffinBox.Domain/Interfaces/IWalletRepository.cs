@@ -9,8 +9,8 @@ namespace TiffinBox.Domain.Interfaces
 {
     public interface IWalletRepository : IRepository<Wallet>
     {
-        Task<Wallet?> GetByUserIdAsync(Guid userId);
-        Task<Wallet?> GetByUserIdWithTransactionsAsync(Guid userId, int? limit = null);
-        Task<IReadOnlyList<WalletTransaction>> GetTransactionsAsync(Guid walletId, DateTime? from, DateTime? to, int page, int pageSize);
+        Task<Wallet?> GetByUserIdAsync(int userId);
+        Task<Wallet?> GetByUserIdWithTransactionsAsync(int userId, int? limit = null);
+        Task<IReadOnlyList<WalletTransaction>> GetTransactionsAsync(int walletId, DateTime? from, DateTime? to, int page, int pageSize);
     }
 }

@@ -10,12 +10,12 @@ namespace TiffinBox.Domain.Interfaces
 {
     public interface IVendorRepository : IRepository<Vendor>
     {
-        Task<Vendor?> GetByIdWithDetailsAsync(Guid id);
+        Task<Vendor?> GetByIdWithDetailsAsync(int id);
         Task<IReadOnlyList<Vendor>> GetApprovedVendorsAsync();
         Task<IReadOnlyList<Vendor>> GetPendingVendorsAsync();
         Task<IReadOnlyList<Vendor>> GetVendorsByAreaAsync(string area);
-        Task<bool> IsGSTINUniqueAsync(string gstin, Guid? excludeVendorId = null);
-        Task UpdateRatingAsync(Guid vendorId, int newRating);
+        Task<bool> IsGSTINUniqueAsync(string gstin, int? excludeVendorId = null);
+        Task UpdateRatingAsync(int vendorId, int newRating);
 
         // ✅ Missing methods - Add these
         Task<IReadOnlyList<Vendor>> GetFilteredAsync(VendorSpecification spec);

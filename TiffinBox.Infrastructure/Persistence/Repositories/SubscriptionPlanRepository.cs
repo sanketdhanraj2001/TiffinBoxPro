@@ -13,7 +13,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
     {
         public SubscriptionPlanRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<IReadOnlyList<SubscriptionPlan>> GetActivePlansByVendorAsync(Guid vendorId)
+        public async Task<IReadOnlyList<SubscriptionPlan>> GetActivePlansByVendorAsync(int vendorId)
         {
             return await _dbSet
                 .Include(p => p.Vendor)
@@ -22,7 +22,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<SubscriptionPlan?> GetByIdWithDetailsAsync(Guid id)
+        public async Task<SubscriptionPlan?> GetByIdWithDetailsAsync(int id)
         {
             return await _dbSet
                 .Include(p => p.Vendor)
@@ -30,7 +30,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<bool> IsPlanNameUniqueAsync(Guid vendorId, string name, Guid? excludeId = null)
+        public async Task<bool> IsPlanNameUniqueAsync(int vendorId, string name, int? excludeId = null)
         {
             var query = _dbSet.Where(p => p.VendorId == vendorId && p.Name == name);
             if (excludeId.HasValue)

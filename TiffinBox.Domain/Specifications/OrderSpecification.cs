@@ -9,9 +9,9 @@ namespace TiffinBox.Domain.Specifications
 {
     public class OrderSpecification
     {
-        public Guid? CustomerId { get; set; }
-        public Guid? VendorId { get; set; }
-        public Guid? AgentId { get; set; }
+        public int? CustomerId { get; set; }
+        public int? VendorId { get; set; }
+        public int? AgentId { get; set; }
         public OrderStatus? Status { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }

@@ -75,7 +75,7 @@ namespace TiffinBox.Application.Services
                 var (accessToken, expiresAt) = GenerateAccessToken(user);
                 var refreshToken = GenerateRefreshToken();
 
-                user.SetRefreshToken(refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+                user.SetRefreshToken(refreshToken,DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes));
                 await _unitOfWork.CompleteAsync();
 
                 var userProfile = MapToUserProfileDto(user);
@@ -104,6 +104,13 @@ namespace TiffinBox.Application.Services
         {
             try
             {
+                var isEmailVerified = await _cacheService.GetAsync<bool>($"verified_email:{request.Email}");
+                if (!isEmailVerified)
+                {
+                    return ApiResponse<RegisterResponseDto>.Fail("Please verify your email address first.");
+                }
+
+
                 var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
                 if (existingUser != null)
                     return ApiResponse<RegisterResponseDto>.Fail("Email already registered");
@@ -114,8 +121,10 @@ namespace TiffinBox.Application.Services
 
                 await _unitOfWork.BeginTransactionAsync();
 
-                var user = User.Create(request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Role);
+                var user = User.Create(request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Role, request.UserName);
                 user.SetPasswordHash(BCrypt.Net.BCrypt.HashPassword(request.Password));
+
+                user.VerifyEmail();
 
                 if (request.Address != null)
                 {
@@ -133,9 +142,11 @@ namespace TiffinBox.Application.Services
                 await _unitOfWork.CompleteAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
-                var otp = GenerateOtp();
-                await _cacheService.SetAsync($"otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
-                await _emailService.SendVerificationEmailAsync(user.Email, otp);
+                //var otp = GenerateOtp();
+                //await _cacheService.SetAsync($"otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
+                //Change this line in RegisterAsync:
+                //await _cacheService.SetAsync($"email_otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
+                //await _emailService.SendVerificationEmailAsync(user.Email, otp);
 
                 _logger.LogInformation("User {Email} registered successfully", user.Email);
 
@@ -171,7 +182,7 @@ namespace TiffinBox.Application.Services
             });
         }
 
-        public async Task<ApiResponse<bool>> LogoutAsync(Guid userId)
+        public async Task<ApiResponse<bool>> LogoutAsync(int userId)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user != null)
@@ -183,7 +194,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<bool>.Ok(true, "Logged out successfully");
         }
 
-        public async Task<ApiResponse<UserProfileDto>> GetCurrentUserAsync(Guid userId)
+        public async Task<ApiResponse<UserProfileDto>> GetCurrentUserAsync(int userId)
         {
             var user = await _unitOfWork.Users.GetByIdWithDetailsAsync(userId);
 
@@ -234,6 +245,7 @@ namespace TiffinBox.Application.Services
                     return ApiResponse<bool>.Ok(true, "Email verified successfully! You can now complete your registration.");
                 }
 
+
                 // User exists - mark email as verified
                 user.VerifyEmail();  // This sets IsEmailVerified = true
                 await _unitOfWork.CompleteAsync();
@@ -252,32 +264,7 @@ namespace TiffinBox.Application.Services
             }
         }
 
-        //public async Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequest request)
-        //{
-        //    if (string.IsNullOrWhiteSpace(request.Email))
-        //        return ApiResponse<bool>.Fail("Email is required");
 
-        //    if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
-        //        return ApiResponse<bool>.Fail("Valid OTP is required");
-
-        //    var cachedOtp = await _cacheService.GetAsync<string>($"otp:{request.Email}");
-
-        //    if (cachedOtp == null)
-        //        return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
-
-        //    if (cachedOtp != request.Otp)
-        //        return ApiResponse<bool>.Fail("Invalid OTP. Please try again.");
-
-        //    var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
-        //    if (user == null)
-        //        return ApiResponse<bool>.Fail("User not found");
-
-        //    user.VerifyEmail();
-        //    await _unitOfWork.CompleteAsync();
-        //    await _cacheService.RemoveAsync($"otp:{request.Email}");
-
-        //    return ApiResponse<bool>.Ok(true, "Email verified successfully");
-        //}
 
         public async Task<ApiResponse<bool>> ForgotPasswordAsync(ForgotPasswordRequest request)
         {
@@ -310,7 +297,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<bool>.Ok(true, "Password reset successfully");
         }
 
-        public async Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, string oldPassword, string newPassword)
+        public async Task<ApiResponse<bool>> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
@@ -328,7 +315,7 @@ namespace TiffinBox.Application.Services
             return ApiResponse<bool>.Ok(true, "Password changed successfully");
         }
 
-        public async Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
+        public async Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(int userId, UpdateProfileRequest request)
         {
             var user = await _unitOfWork.Users.GetByIdWithDetailsAsync(userId);
             if (user == null)
@@ -379,7 +366,6 @@ namespace TiffinBox.Application.Services
                 new Claim(ClaimTypes.GivenName, user.FirstName),
                 new Claim(ClaimTypes.Surname, user.LastName),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
 
@@ -498,29 +484,21 @@ namespace TiffinBox.Application.Services
         {
             try
             {
-                // Extract 10-digit phone number (handles +91, 91, or just 10 digits)
                 var phoneNumber10Digit = Extract10DigitPhoneNumber(request.PhoneNumber);
 
-                // Validate phone number
                 if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
-                // Check if user exists with this phone number (optional - during registration we don't check)
-                // var existingUser = await _unitOfWork.Users.GetByPhoneAsync(phoneNumber10Digit);
+                //  Send OTP and get sessionId from 2Factor
+                var sessionId = await _smsService.SendOtpVerificationAsync(phoneNumber10Digit, null);
 
-                // Generate OTP (6 digits)
-                var otp = GenerateOtp();
+                if (string.IsNullOrEmpty(sessionId))
+                    return ApiResponse<bool>.Fail("Failed to send OTP. Please try again.");
 
-                // Store OTP in cache with 10 minutes expiry (using 10-digit number as key)
-                await _cacheService.SetAsync($"mobile_otp:{phoneNumber10Digit}", otp, TimeSpan.FromMinutes(10));
+                // Store sessionId in cache (not the OTP value)
+                await _cacheService.SetAsync($"mobile_otp_session:{phoneNumber10Digit}", sessionId, TimeSpan.FromMinutes(10));
 
-                // Format full number for SMS (adds +91)
-                var fullPhoneNumber = FormatPhoneNumberForSms(phoneNumber10Digit);
-
-                // Send OTP via SMS
-                await _smsService.SendOtpAsync(fullPhoneNumber, otp);
-
-                _logger.LogInformation("Mobile OTP sent to {PhoneNumber}", phoneNumber10Digit);
+                _logger.LogInformation("Mobile OTP sent to {PhoneNumber}, SessionId: {SessionId}", phoneNumber10Digit, sessionId);
 
                 return ApiResponse<bool>.Ok(true, "OTP sent successfully to your mobile number. Valid for 10 minutes.");
             }
@@ -536,55 +514,50 @@ namespace TiffinBox.Application.Services
         {
             try
             {
-                // Extract 10-digit phone number (handles +91, 91, or just 10 digits)
                 var phoneNumber10Digit = Extract10DigitPhoneNumber(request.PhoneNumber);
 
-                // Validate inputs
                 if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
                 if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Length != 6)
                     return ApiResponse<bool>.Fail("Please enter a valid 6-digit OTP");
 
-                // Get cached OTP (using 10-digit number as key)
-                var cachedOtp = await _cacheService.GetAsync<string>($"mobile_otp:{phoneNumber10Digit}");
+                //  Get cached sessionId (not OTP value)
+                var sessionId = await _cacheService.GetAsync<string>($"mobile_otp_session:{phoneNumber10Digit}");
 
-                if (cachedOtp == null)
+                if (string.IsNullOrEmpty(sessionId))
                 {
-                    _logger.LogWarning("OTP expired for {PhoneNumber}", phoneNumber10Digit);
+                    _logger.LogWarning("OTP session expired for {PhoneNumber}", phoneNumber10Digit);
                     return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
                 }
 
-                if (cachedOtp != request.Otp)
+                //  Verify OTP using 2Factor API
+                var isValid = await _smsService.VerifyOtpAsync(sessionId, request.Otp);
+
+                if (!isValid)
                 {
-                    _logger.LogWarning("Invalid OTP attempt for {PhoneNumber}. Expected: {Expected}, Got: {Actual}",
-                        phoneNumber10Digit, cachedOtp, request.Otp);
+                    _logger.LogWarning("Invalid OTP attempt for {PhoneNumber}", phoneNumber10Digit);
                     return ApiResponse<bool>.Fail("Invalid OTP. Please enter the correct 6-digit OTP.");
                 }
 
-                // Find user by phone number (using 10-digit format for database lookup)
+                // Find user by phone number
                 var user = await _unitOfWork.Users.GetByPhoneAsync(phoneNumber10Digit);
 
                 if (user == null)
                 {
-                    // User doesn't exist - store verified phone for registration
                     await _cacheService.SetAsync($"verified_phone:{phoneNumber10Digit}", true, TimeSpan.FromMinutes(30));
-                    await _cacheService.RemoveAsync($"mobile_otp:{phoneNumber10Digit}");
+                    await _cacheService.RemoveAsync($"mobile_otp_session:{phoneNumber10Digit}");
 
                     _logger.LogInformation("Phone number {PhoneNumber} verified for new registration", phoneNumber10Digit);
-
                     return ApiResponse<bool>.Ok(true, "Mobile number verified successfully! You can now complete your registration.");
                 }
 
-                // User exists - mark phone as verified
-                user.VerifyPhone();  // This sets IsPhoneVerified = true
+                user.VerifyPhone();
                 await _unitOfWork.CompleteAsync();
 
-                // Remove OTP from cache after successful verification
-                await _cacheService.RemoveAsync($"mobile_otp:{phoneNumber10Digit}");
+                await _cacheService.RemoveAsync($"mobile_otp_session:{phoneNumber10Digit}");
 
                 _logger.LogInformation("Mobile number {PhoneNumber} verified successfully for user {UserId}", phoneNumber10Digit, user.Id);
-
                 return ApiResponse<bool>.Ok(true, "Mobile number verified successfully!");
             }
             catch (Exception ex)
@@ -599,25 +572,21 @@ namespace TiffinBox.Application.Services
         {
             try
             {
-                // Extract 10-digit phone number (handles +91, 91, or just 10 digits)
                 var phoneNumber10Digit = Extract10DigitPhoneNumber(request.PhoneNumber);
 
                 if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
-                // Generate new OTP
-                var otp = GenerateOtp();
+                // ✅ Send OTP and get new sessionId
+                var sessionId = await _smsService.SendOtpVerificationAsync(phoneNumber10Digit, null);
 
-                // Store new OTP in cache (overwrites old one) - using 10-digit number as key
-                await _cacheService.SetAsync($"mobile_otp:{phoneNumber10Digit}", otp, TimeSpan.FromMinutes(10));
+                if (string.IsNullOrEmpty(sessionId))
+                    return ApiResponse<bool>.Fail("Failed to resend OTP. Please try again.");
 
-                // Format full number for SMS (adds +91)
-                var fullPhoneNumber = FormatPhoneNumberForSms(phoneNumber10Digit);
+                // Store new sessionId in cache
+                await _cacheService.SetAsync($"mobile_otp_session:{phoneNumber10Digit}", sessionId, TimeSpan.FromMinutes(10));
 
-                // Send OTP via SMS
-                await _smsService.SendOtpVerificationAsync(fullPhoneNumber, otp);
-
-                _logger.LogInformation("Mobile OTP resent to {PhoneNumber}", phoneNumber10Digit);
+                _logger.LogInformation("Mobile OTP resent to {PhoneNumber}, SessionId: {SessionId}", phoneNumber10Digit, sessionId);
 
                 return ApiResponse<bool>.Ok(true, "OTP resent successfully. Valid for 10 minutes.");
             }
@@ -627,7 +596,6 @@ namespace TiffinBox.Application.Services
                 return ApiResponse<bool>.Fail("Failed to resend OTP. Please try again.");
             }
         }
-
         // ==================== Email OTP Methods ====================
 
         /// Send OTP to email for verification

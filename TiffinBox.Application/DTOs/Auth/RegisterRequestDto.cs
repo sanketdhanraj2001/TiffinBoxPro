@@ -22,13 +22,13 @@ namespace TiffinBox.Application.DTOs.Auth
 
     public class RegisterResponseDto
     {
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public string Email { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
 
         public RegisterResponseDto() { }
 
-        public RegisterResponseDto(Guid userId, string email, string message)
+        public RegisterResponseDto(int userId, string email, string message)
         {
             UserId = userId;
             Email = email;

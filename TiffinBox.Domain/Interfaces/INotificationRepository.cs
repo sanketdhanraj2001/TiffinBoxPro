@@ -9,10 +9,10 @@ namespace TiffinBox.Domain.Interfaces
 {
     public interface INotificationRepository : IRepository<Notification>
     {
-        Task<IReadOnlyList<Notification>> GetUnreadByUserAsync(Guid userId);
-        Task<IReadOnlyList<Notification>> GetByUserAsync(Guid userId, int page, int pageSize);
-        Task MarkAsReadAsync(Guid notificationId);
-        Task MarkAllAsReadAsync(Guid userId);
-        Task<int> GetUnreadCountAsync(Guid userId);
+        Task<IReadOnlyList<Notification>> GetUnreadByUserAsync(int userId);
+        Task<IReadOnlyList<Notification>> GetByUserAsync(int userId, int page, int pageSize);
+        Task MarkAsReadAsync(int notificationId);
+        Task MarkAllAsReadAsync(int userId);
+        Task<int> GetUnreadCountAsync(int userId);
     }
 }

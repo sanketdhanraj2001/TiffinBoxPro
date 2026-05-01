@@ -14,27 +14,27 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
     {
         public SubscriptionRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<Subscription?> GetByIdWithDetailsAsync(Guid id)
+        public async Task<Subscription?> GetByIdWithDetailsAsync(int id)
             => await _dbSet
                 .Include(s => s.Plan).ThenInclude(p => p.Vendor)
                 .Include(s => s.Meals).ThenInclude(m => m.MenuItem)
                 .Include(s => s.Orders)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
-        public async Task<IReadOnlyList<Subscription>> GetCustomerSubscriptionsAsync(Guid customerId)
+        public async Task<IReadOnlyList<Subscription>> GetCustomerSubscriptionsAsync(int customerId)
             => await _dbSet
                 .Include(s => s.Plan).ThenInclude(p => p.Vendor)
                 .Where(s => s.CustomerId == customerId)
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
 
-        public async Task<IReadOnlyList<Subscription>> GetVendorSubscriptionsAsync(Guid vendorId)
+        public async Task<IReadOnlyList<Subscription>> GetVendorSubscriptionsAsync(int vendorId)
             => await _dbSet
                 .Include(s => s.Plan)
                 .Where(s => s.VendorId == vendorId)
                 .ToListAsync();
 
-        public async Task<Subscription?> GetActiveSubscriptionAsync(Guid customerId, Guid vendorId)
+        public async Task<Subscription?> GetActiveSubscriptionAsync(int customerId, int vendorId)
             => await _dbSet
                 .FirstOrDefaultAsync(s => s.CustomerId == customerId
                     && s.VendorId == vendorId
@@ -50,7 +50,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .Where(s => s.EndDate.Date == renewalDate.Date && s.Status == SubscriptionStatus.Active)
                 .ToListAsync();
 
-        public async Task<int> GetActiveSubscribersCountAsync(Guid vendorId)
+        public async Task<int> GetActiveSubscribersCountAsync(int vendorId)
             => await _dbSet.CountAsync(s => s.VendorId == vendorId && s.Status == SubscriptionStatus.Active);
     }
 }

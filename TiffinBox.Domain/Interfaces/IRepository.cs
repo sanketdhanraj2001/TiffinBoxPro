@@ -9,7 +9,7 @@ namespace TiffinBox.Domain.Interfaces
 {
     public interface IRepository<T> where T : class
     {
-        Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default);
 

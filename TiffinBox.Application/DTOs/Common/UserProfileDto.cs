@@ -8,7 +8,7 @@ namespace TiffinBox.Application.DTOs.Common
 {
     public class UserProfileDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
@@ -18,8 +18,8 @@ namespace TiffinBox.Application.DTOs.Common
         public bool IsEmailVerified { get; set; }
         public bool IsPhoneVerified { get; set; }
         public string? ProfilePictureUrl { get; set; }
-        public Guid? VendorId { get; set; }
-        public Guid? DeliveryAgentId { get; set; }
+        public int? VendorId { get; set; }
+        public int? DeliveryAgentId { get; set; }
         public decimal WalletBalance { get; set; }
         public string? Address { get; set; }
         public DateTime CreatedAt { get; set; }

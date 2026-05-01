@@ -11,7 +11,7 @@ namespace TiffinBox.Domain.Entities
 {
     public class SubscriptionPlan : BaseEntity
     {
-        public Guid VendorId { get; private set; }
+        public int VendorId { get; private set; }
         public virtual Vendor Vendor { get; private set; }
         public string Name { get; private set; }
         public string? Description { get; private set; }
@@ -30,7 +30,7 @@ namespace TiffinBox.Domain.Entities
         private SubscriptionPlan() { }
 
         public static SubscriptionPlan Create(
-            Guid vendorId,
+            int vendorId,
             string name,
             PlanType planType,
             Money price,

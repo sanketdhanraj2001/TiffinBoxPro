@@ -13,7 +13,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
     {
         public MenuItemRepository(ApplicationDbContext context) : base(context) { }
 
-        public async Task<IReadOnlyList<MenuItem>> GetByVendorAsync(Guid vendorId)
+        public async Task<IReadOnlyList<MenuItem>> GetByVendorAsync(int vendorId)
         {
             return await _dbSet
                 .Where(m => m.VendorId == vendorId)
@@ -22,7 +22,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IReadOnlyList<MenuItem>> GetByVendorAsync(Guid vendorId, bool onlyAvailable)
+        public async Task<IReadOnlyList<MenuItem>> GetByVendorAsync(int vendorId, bool onlyAvailable)
         {
             var query = _dbSet.Where(m => m.VendorId == vendorId);
 
@@ -35,7 +35,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IReadOnlyList<MenuItem>> GetByIdsAsync(List<Guid> ids)
+        public async Task<IReadOnlyList<MenuItem>> GetByIdsAsync(List<int> ids)
         {
             if (ids == null || !ids.Any())
                 return new List<MenuItem>();
@@ -45,21 +45,21 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IReadOnlyList<MenuItem>> GetByCategoryAsync(Guid vendorId, string category)
+        public async Task<IReadOnlyList<MenuItem>> GetByCategoryAsync(int vendorId, string category)
         {
             return await _dbSet
                 .Where(m => m.VendorId == vendorId && m.Category == category && m.IsAvailable)
                 .ToListAsync();
         }
 
-        public async Task<IReadOnlyList<MenuItem>> GetVegetarianItemsAsync(Guid vendorId)
+        public async Task<IReadOnlyList<MenuItem>> GetVegetarianItemsAsync(int vendorId)
         {
             return await _dbSet
                 .Where(m => m.VendorId == vendorId && m.IsVegetarian && m.IsAvailable)
                 .ToListAsync();
         }
 
-        public async Task<IReadOnlyList<MenuItem>> GetPopularItemsAsync(Guid vendorId, int take)
+        public async Task<IReadOnlyList<MenuItem>> GetPopularItemsAsync(int vendorId, int take)
         {
             return await _dbSet
                 .Where(m => m.VendorId == vendorId && m.IsAvailable)
@@ -68,7 +68,7 @@ namespace TiffinBox.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> IsNameUniqueAsync(Guid vendorId, string name, Guid? excludeId = null)
+        public async Task<bool> IsNameUniqueAsync(int vendorId, string name, int? excludeId = null)
         {
             var query = _dbSet.Where(m => m.VendorId == vendorId && m.Name == name);
             if (excludeId.HasValue)

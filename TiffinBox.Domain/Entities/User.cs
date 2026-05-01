@@ -40,7 +40,7 @@ namespace TiffinBox.Domain.Entities
 
         private User() { }
 
-        public static User Create(string email, string phoneNumber, string firstName, string lastName, UserRole role)
+        public static User Create(string email, string phoneNumber, string firstName, string lastName, UserRole role,string userName)
         {
             var user = new User
             {
@@ -50,7 +50,8 @@ namespace TiffinBox.Domain.Entities
                 LastName = lastName,
                 Role = role,
                 IsActive = true,
-                FailedLoginAttempts = 0
+                FailedLoginAttempts = 0,
+                UserName=userName
             };
 
 
