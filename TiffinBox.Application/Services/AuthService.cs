@@ -17,6 +17,7 @@ using TiffinBox.Application.DTOs.Common;
 using TiffinBox.Domain.Entities;
 using TiffinBox.Domain.Enums;
 using TiffinBox.Domain.Interfaces;
+using TiffinBox.Domain.ValueObjects;
 
 namespace TiffinBox.Application.Services
 {
@@ -100,58 +101,135 @@ namespace TiffinBox.Application.Services
             }
         }
 
+        //public async Task<ApiResponse<RegisterResponseDto>> RegisterAsync(RegisterRequestDto request)
+        //{
+        //    try
+        //    {
+        //        var isEmailVerified = await _cacheService.GetAsync<bool>($"verified_email:{request.Email}");
+        //        if (!isEmailVerified)
+        //        {
+        //            return ApiResponse<RegisterResponseDto>.Fail("Please verify your email address first.");
+        //        }
+
+
+        //        var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+        //        if (existingUser != null)
+        //            return ApiResponse<RegisterResponseDto>.Fail("Email already registered");
+
+        //        existingUser = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
+        //        if (existingUser != null)
+        //            return ApiResponse<RegisterResponseDto>.Fail("Phone number already registered");
+
+        //        await _unitOfWork.BeginTransactionAsync();
+
+        //        var user = User.Create(request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Role, request.UserName);
+        //        user.SetPasswordHash(BCrypt.Net.BCrypt.HashPassword(request.Password));
+
+        //        user.VerifyEmail();
+
+        //        if (request.Address != null)
+        //        {
+        //            user.UpdateProfile(request.FirstName, request.LastName, request.Address.ToDomain(), null);
+        //        }
+
+        //        await _unitOfWork.Users.AddAsync(user);
+
+        //        if (request.Role == UserRole.VendorAdmin)
+        //        {
+        //            var vendor = Vendor.Create(user, $"{request.FirstName}'s Kitchen", user.Address!);
+        //            await _unitOfWork.Vendors.AddAsync(vendor);
+        //        }
+
+        //        await _unitOfWork.CompleteAsync();
+        //        await _unitOfWork.CommitTransactionAsync();
+
+        //        //var otp = GenerateOtp();
+        //        //await _cacheService.SetAsync($"otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
+        //        //Change this line in RegisterAsync:
+        //        //await _cacheService.SetAsync($"email_otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
+        //        //await _emailService.SendVerificationEmailAsync(user.Email, otp);
+
+        //        _logger.LogInformation("User {Email} registered successfully", user.Email);
+
+        //        return ApiResponse<RegisterResponseDto>.Ok(
+        //            new RegisterResponseDto(user.Id, user.Email, "Registration successful. Please verify your email with OTP."));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _unitOfWork.RollbackTransactionAsync();
+        //        _logger.LogError(ex, "Registration error for {Email}", request.Email);
+        //        return ApiResponse<RegisterResponseDto>.Fail("An error occurred during registration");
+        //    }
+        //}
         public async Task<ApiResponse<RegisterResponseDto>> RegisterAsync(RegisterRequestDto request)
         {
             try
             {
+                // Check if email is verified
                 var isEmailVerified = await _cacheService.GetAsync<bool>($"verified_email:{request.Email}");
                 if (!isEmailVerified)
                 {
                     return ApiResponse<RegisterResponseDto>.Fail("Please verify your email address first.");
                 }
 
-
+                // Check if email already exists
                 var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
                 if (existingUser != null)
                     return ApiResponse<RegisterResponseDto>.Fail("Email already registered");
 
+                // Check if phone already exists
                 existingUser = await _unitOfWork.Users.GetByPhoneAsync(request.PhoneNumber);
                 if (existingUser != null)
                     return ApiResponse<RegisterResponseDto>.Fail("Phone number already registered");
 
                 await _unitOfWork.BeginTransactionAsync();
 
+                // Create user
                 var user = User.Create(request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Role, request.UserName);
                 user.SetPasswordHash(BCrypt.Net.BCrypt.HashPassword(request.Password));
+                user.VerifyEmail(); // Email is already verified via OTP
 
-                user.VerifyEmail();
-
+                //  Handle Address - Create if provided
+                Address? address = null;
                 if (request.Address != null)
                 {
-                    user.UpdateProfile(request.FirstName, request.LastName, request.Address.ToDomain(), null);
+                    address = new Address(
+                        request.Address.Street,
+                        request.Address.City,
+                        request.Address.State,
+                        request.Address.PostalCode,
+                        request.Address.Country,
+                        request.Address.Landmark
+                    );
+                    user.UpdateProfile(request.FirstName, request.LastName, address, null);
                 }
 
                 await _unitOfWork.Users.AddAsync(user);
+                await _unitOfWork.CompleteAsync(); // Save user first to get Id
 
+                //  Create wallet for user
+                var wallet = Wallet.Create(user.Id);
+                await _unitOfWork.Wallets.AddAsync(wallet);
+
+                //  Handle Vendor creation if role is VendorAdmin
                 if (request.Role == UserRole.VendorAdmin)
                 {
-                    var vendor = Vendor.Create(user, $"{request.FirstName}'s Kitchen", user.Address!);
+                    // Create vendor with address
+                    var vendorAddress = address ?? new Address("", "", "", "", "", "");
+                    var vendor = Vendor.Create(user, $"{request.FirstName}'s Kitchen", vendorAddress);
                     await _unitOfWork.Vendors.AddAsync(vendor);
                 }
 
                 await _unitOfWork.CompleteAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
-                //var otp = GenerateOtp();
-                //await _cacheService.SetAsync($"otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
-                //Change this line in RegisterAsync:
-                //await _cacheService.SetAsync($"email_otp:{user.Email}", otp, TimeSpan.FromMinutes(10));
-                //await _emailService.SendVerificationEmailAsync(user.Email, otp);
+                //  Clean up verified email from cache
+                await _cacheService.RemoveAsync($"verified_email:{request.Email}");
 
                 _logger.LogInformation("User {Email} registered successfully", user.Email);
 
                 return ApiResponse<RegisterResponseDto>.Ok(
-                    new RegisterResponseDto(user.Id, user.Email, "Registration successful. Please verify your email with OTP."));
+                    new RegisterResponseDto(user.Id, user.Email, "Registration successful! Please login."));
             }
             catch (Exception ex)
             {
@@ -160,7 +238,6 @@ namespace TiffinBox.Application.Services
                 return ApiResponse<RegisterResponseDto>.Fail("An error occurred during registration");
             }
         }
-
         public async Task<ApiResponse<TokenResponseDto>> RefreshTokenAsync(RefreshTokenRequest request)
         {
             var user = await _unitOfWork.Users.GetByRefreshTokenAsync(request.RefreshToken);
@@ -577,7 +654,7 @@ namespace TiffinBox.Application.Services
                 if (string.IsNullOrWhiteSpace(phoneNumber10Digit) || phoneNumber10Digit.Length != 10)
                     return ApiResponse<bool>.Fail("Please enter a valid 10-digit mobile number");
 
-                // ✅ Send OTP and get new sessionId
+                //  Send OTP and get new sessionId
                 var sessionId = await _smsService.SendOtpVerificationAsync(phoneNumber10Digit, null);
 
                 if (string.IsNullOrEmpty(sessionId))

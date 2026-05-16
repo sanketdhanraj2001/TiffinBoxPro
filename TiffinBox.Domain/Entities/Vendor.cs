@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -19,8 +20,9 @@ namespace TiffinBox.Domain.Entities
         public string? Description { get; private set; }
         public string? LogoUrl { get; private set; }
         public string? CoverImageUrl { get; private set; }
-        //public string? Reviews { get; private set; }
 
+        [ForeignKey(nameof(BusinessAddress))]
+        public int BusinessAddressId { get; private set; }
         public Address BusinessAddress { get; private set; }
         public GeoLocation? Location { get; private set; }
         public double Rating { get; private set; }
